@@ -11,7 +11,7 @@ VKDevice.__index = VKDevice
 
 ---@param adapter hood.vk.Adapter
 function VKDevice.new(adapter)
-	local device = vk.createDevice(adapter.pd, {
+	local rawDevice = vk.createDevice(adapter.pd, {
 		queueCreateInfos = {
 			{
 				queueFamilyIndex = adapter.gfxQueueFamilyIdx,
@@ -19,9 +19,11 @@ function VKDevice.new(adapter)
 			},
 		},
 	})
-	local queue = VKQueue.new(device, adapter.gfxQueueFamilyIdx, 0)
 
-	return setmetatable({ device = device, queue = queue }, VKDevice)
+	local device = setmetatable({ device = rawDevice }, VKDevice)
+	device.queue = VKQueue.new(device, adapter.gfxQueueFamilyIdx, 0)
+
+	return device
 end
 
 ---@param descriptor hood.BufferDescriptor

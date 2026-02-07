@@ -28,8 +28,7 @@ function VKAdapter.new(physicalDevice)
 end
 
 function VKAdapter:requestDevice()
-	local rawDevice = vk.createDevice(self.pd, {})
-	return VKDevice.new(rawDevice)
+	return VKDevice.new(self)
 end
 
 return VKAdapter

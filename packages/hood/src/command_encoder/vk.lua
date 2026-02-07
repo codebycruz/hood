@@ -32,6 +32,14 @@ function VKCommandEncoder:beginRendering(descriptor)
 	vk.cmdBeginRenderPass(self.buffer.buffer, descriptor.renderPassBeginInfo, vk.SubpassContents.INLINE)
 end
 
+---@param buffer hood.vk.Buffer
+---@param size number
+---@param data ffi.cdata*
+---@param offset number?
+function VKCommandEncoder:writeBuffer(buffer, size, data, offset)
+	vk.cmdUpdateBuffer(self.buffer.buffer, buffer.buffer, offset or 0, size, data)
+end
+
 function VKCommandEncoder:finish()
 	return self.buffer
 end

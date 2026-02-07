@@ -8,7 +8,8 @@ local VKInstance = {}
 VKInstance.__index = VKInstance
 
 function VKInstance.new()
-	return setmetatable({}, VKInstance)
+	local instance = vk.createInstance({})
+	return setmetatable({ instance = instance }, VKInstance)
 end
 
 ---@param config hood.AdapterConfig
@@ -46,7 +47,7 @@ end
 
 ---@param window winit.Window
 function VKInstance:createSurface(window)
-	-- todo: this
+	return VKSurface.new(window)
 end
 
 return VKInstance
