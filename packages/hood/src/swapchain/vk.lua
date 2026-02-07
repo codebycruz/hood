@@ -21,3 +21,5 @@ end
 
 ---@param queue hood.vk.Queue
 function VKSwapchain:present(queue) end
+
+return VKSwapchain
