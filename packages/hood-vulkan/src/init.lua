@@ -385,6 +385,7 @@ do
 		return vkGlobal.enumeratePhysicalDevices(globalInstance)
 	end
 
+	vk.createInstance = vkGlobal.createInstance
 	vk.createDevice = vkInstance.createDevice
 end
 
