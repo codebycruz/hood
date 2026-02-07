@@ -232,6 +232,7 @@ local globalDevice = vkInstance.createDevice(globalPhysicalDevice, {})
 
 local vkDevice = {}
 do
+	---@format disable-next
 	local types = {
 		vkCreateBuffer = "VkResult(*)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*)",
 		vkDestroyBuffer = "void(*)(VkDevice, VkBuffer, const VkAllocationCallbacks*)",
@@ -271,6 +272,7 @@ do
 		vkGetSwapchainImagesKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint32_t*, VkImage*)",
 		vkAcquireNextImageKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)",
 		vkQueuePresentKHR = "VkResult(*)(VkQueue, const VkPresentInfoKHR*)",
+		vkCmdUpdateBuffer = "void(*)(VkCommandBuffer, VkBuffer, VkDeviceSize, VkDeviceSize, const void*)",
 	}
 
 	for name, funcType in pairs(types) do
@@ -726,6 +728,9 @@ do
 
 	---@type fun(commandBuffer: vk.CommandBuffer, pipelineBindPoint: vk.PipelineBindPoint, pipeline: vk.Pipeline)
 	vk.cmdBindPipeline = vkDevice.vkCmdBindPipeline
+
+	---@type fun(commandBuffer: vk.CommandBuffer, dstBuffer: vk.Buffer, dstOffset: vk.DeviceSize, dataSize: vk.DeviceSize, pData: ffi.cdata*)
+	vk.cmdUpdateBuffer = vkDevice.vkCmdUpdateBuffer
 
 	---@type fun(commandBuffer: vk.CommandBuffer, vertexCount: number, instanceCount: number, firstVertex: number, firstInstance: number)
 	vk.cmdDraw = vkDevice.vkCmdDraw

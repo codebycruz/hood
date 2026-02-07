@@ -802,3 +802,7 @@ VkResult vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain,
                                VkFence fence, uint32_t *pImageIndex);
 
 VkResult vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *pPresentInfo);
+
+void vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
+                       VkDeviceSize dstOffset, VkDeviceSize dataSize,
+                       const void *pData);
