@@ -364,6 +364,12 @@ do
 		TRANSFER = 0x00000004,
 	}
 
+	---@enum vk.CommandPoolCreateFlagBits
+	vk.CommandPoolCreateFlagBits = {
+		TRANSIENT = 0x00000001,
+		RESET_COMMAND_BUFFER = 0x00000002,
+	}
+
 	vk.getPhysicalDeviceProperties = vkGlobal.getPhysicalDeviceProperties
 
 	function vk.newRenderPassBeginInfo()
