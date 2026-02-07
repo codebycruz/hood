@@ -1,3 +1,7 @@
+-- TODO: turn this into a feature flag when those exist in lpm
+---@type boolean
+VULKAN = os.getenv("VULKAN") == "1"
+
 ---@alias hood.Color { r: number, g: number, b: number, a: number }
 
 local hood = {}
