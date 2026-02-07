@@ -57,14 +57,14 @@ local indexFormatToGL = {
 
 ---@type table<hood.CompareFunction, number>
 local compareFnsMap = {
-	[hood.CompareFunction.NEVER] = gl.NEVER,
-	[hood.CompareFunction.LESS] = gl.LESS,
-	[hood.CompareFunction.EQUAL] = gl.EQUAL,
-	[hood.CompareFunction.LESS_EQUAL] = gl.LESS_EQUAL,
-	[hood.CompareFunction.GREATER] = gl.GREATER,
-	[hood.CompareFunction.NOT_EQUAL] = gl.NOTEQUAL,
-	[hood.CompareFunction.GREATER_EQUAL] = gl.GREATER_EQUAL,
-	[hood.CompareFunction.ALWAYS] = gl.ALWAYS,
+	[hood.CompareFunction.Never] = gl.NEVER,
+	[hood.CompareFunction.Less] = gl.LESS,
+	[hood.CompareFunction.Equal] = gl.EQUAL,
+	[hood.CompareFunction.LessEqual] = gl.LESS_EQUAL,
+	[hood.CompareFunction.Greater] = gl.GREATER,
+	[hood.CompareFunction.NotEqual] = gl.NOTEQUAL,
+	[hood.CompareFunction.GreaterEqual] = gl.GREATER_EQUAL,
+	[hood.CompareFunction.Always] = gl.ALWAYS,
 }
 
 ---@type table<hood.StorageAccess, number>
@@ -136,7 +136,7 @@ function GLCommandBuffer:execute()
 			end
 
 			for _, target in ipairs(pipeline.fragment.targets) do
-				if target.blend == hood.BlendState.ALPHA_BLENDING then
+				if target.blend == hood.BlendState.AlphaBlending then
 					gl.enable(gl.BLEND)
 					gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 				else

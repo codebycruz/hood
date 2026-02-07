@@ -24,18 +24,18 @@ local swapchain = surface:configure(device, {})
 
 -- Define vertex layout: position (vec3) + color (vec4)
 local vertexLayout = VertexLayout.new()
-	:withAttribute({ type = "f32", size = 3, offset = 0 })  -- position
+	:withAttribute({ type = "f32", size = 3, offset = 0 }) -- position
 	:withAttribute({ type = "f32", size = 4, offset = 12 }) -- color
 
 -- Triangle vertices (centered on screen in NDC coordinates)
 -- Format: x, y, z, r, g, b, a
 local vertices = {
 	-- Top vertex (red)
-	 0.0,  0.5, 0.0,   1.0, 0.0, 0.0, 1.0,
+	0.0, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
 	-- Bottom left vertex (green)
-	-0.5, -0.5, 0.0,   0.0, 1.0, 0.0, 1.0,
+	-0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0,
 	-- Bottom right vertex (blue)
-	 0.5, -0.5, 0.0,   0.0, 0.0, 1.0, 1.0,
+	0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0,
 }
 
 local indices = { 0, 1, 2 }
@@ -80,8 +80,8 @@ local pipeline = device:createPipeline({
 		},
 		targets = {
 			{
-				blend = hood.BlendState.ALPHA_BLENDING,
-				writeMask = hood.ColorWrites.ALL,
+				blend = hood.BlendState.AlphaBlending,
+				writeMask = hood.ColorWrites.All,
 				format = hood.TextureFormat.Rgba8UNorm,
 			},
 		},

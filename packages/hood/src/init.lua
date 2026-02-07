@@ -5,17 +5,17 @@ local hood = {}
 --- No. You aren't getting a full implementation of this anytime soon.
 ---@enum hood.BlendState
 hood.BlendState = {
-	ALPHA_BLENDING = 1,
+	AlphaBlending = 1,
 }
 
 ---@enum hood.ColorWrites
 hood.ColorWrites = {
-	RED = 0b1,
-	GREEN = 0b10,
-	BLUE = 0b100,
-	ALPHA = 0b1000,
-	COLOR = 0b0111,
-	ALL = 0b1111,
+	Red = 0b1,
+	Green = 0b10,
+	Blue = 0b100,
+	Alpha = 0b1000,
+	Color = 0b0111,
+	All = 0b1111,
 }
 
 ---@enum hood.TextureFormat
@@ -31,27 +31,27 @@ hood.TextureFormat = {
 
 ---@enum hood.AddressMode
 hood.AddressMode = {
-	CLAMP_TO_EDGE = 1,
-	REPEAT = 2,
-	MIRRORED_REPEAT = 3,
+	ClampToEdge = 1,
+	Repeat = 2,
+	MirroredRepeat = 3,
 }
 
 ---@enum hood.FilterMode
 hood.FilterMode = {
-	NEAREST = 1,
-	LINEAR = 2,
+	Nearest = 1,
+	Linear = 2,
 }
 
 ---@enum hood.CompareFunction
 hood.CompareFunction = {
-	NEVER = 1,
-	LESS = 2,
-	EQUAL = 3,
-	LESS_EQUAL = 4,
-	GREATER = 5,
-	NOT_EQUAL = 6,
-	GREATER_EQUAL = 7,
-	ALWAYS = 8,
+	Never = 1,
+	Less = 2,
+	Equal = 3,
+	LessEqual = 4,
+	Greater = 5,
+	NotEqual = 6,
+	GreaterEqual = 7,
+	Always = 8,
 }
 
 ---@enum hood.IndexFormat

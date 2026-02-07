@@ -14,19 +14,19 @@ local addressModesMap = {
 }
 
 local filterModesMap = {
-	[hood.FilterMode.NEAREST] = gl.NEAREST,
-	[hood.FilterMode.LINEAR] = gl.LINEAR,
+	[hood.FilterMode.Nearest] = gl.NEAREST,
+	[hood.FilterMode.Linear] = gl.LINEAR,
 }
 
 local compareFnsMap = {
-	[hood.CompareFunction.NEVER] = gl.NEVER,
-	[hood.CompareFunction.LESS] = gl.LESS,
-	[hood.CompareFunction.EQUAL] = gl.EQUAL,
-	[hood.CompareFunction.LESS_EQUAL] = gl.LESS_EQUAL,
-	[hood.CompareFunction.GREATER] = gl.GREATER,
-	[hood.CompareFunction.NOT_EQUAL] = gl.NOTEQUAL,
-	[hood.CompareFunction.GREATER_EQUAL] = gl.GREATER_EQUAL,
-	[hood.CompareFunction.ALWAYS] = gl.ALWAYS,
+	[hood.CompareFunction.Never] = gl.NEVER,
+	[hood.CompareFunction.Less] = gl.LESS,
+	[hood.CompareFunction.Equal] = gl.EQUAL,
+	[hood.CompareFunction.LessEqual] = gl.LESS_EQUAL,
+	[hood.CompareFunction.Greater] = gl.GREATER,
+	[hood.CompareFunction.NotEqual] = gl.NOTEQUAL,
+	[hood.CompareFunction.GreaterEqual] = gl.GREATER_EQUAL,
+	[hood.CompareFunction.Always] = gl.ALWAYS,
 }
 
 ---@param desc hood.SamplerDescriptor
