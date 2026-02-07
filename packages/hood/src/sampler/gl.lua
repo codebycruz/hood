@@ -8,9 +8,9 @@ local GLSampler = {}
 GLSampler.__index = GLSampler
 
 local addressModesMap = {
-	[hood.AddressMode.CLAMP_TO_EDGE] = gl.CLAMP_TO_EDGE,
-	[hood.AddressMode.REPEAT] = gl.REPEAT,
-	[hood.AddressMode.MIRRORED_REPEAT] = gl.MIRRORED_REPEAT,
+	[hood.AddressMode.ClampToEdge] = gl.CLAMP_TO_EDGE,
+	[hood.AddressMode.Repeat] = gl.REPEAT,
+	[hood.AddressMode.MirroredRepeat] = gl.MIRRORED_REPEAT,
 }
 
 local filterModesMap = {
