@@ -3,6 +3,5 @@
 	"runtime": {
 		"version": "LuaJIT",
 		"path": ["./lpm_modules/?.lua", "./lpm_modules/?/init.lua"]
-	},
-	"workspace.library": ["./lpm_modules/*"]
+	}
 }
