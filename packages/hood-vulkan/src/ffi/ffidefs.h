@@ -348,7 +348,7 @@ typedef struct {
 typedef struct {
   VkStructureType sType;
   const void *pNext;
-  uint32_t allocationSize;
+  VkDeviceSize allocationSize;
   uint32_t memoryTypeIndex;
 } VkMemoryAllocateInfo;
 
