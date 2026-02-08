@@ -4,6 +4,7 @@ local VKQueue = require("hood.queue.vk")
 ---@class hood.vk.Device
 ---@field public queue hood.vk.Queue
 ---@field handle vk.Device
+---@field pd vk.ffi.PhysicalDevice
 local VKDevice = {}
 VKDevice.__index = VKDevice
 
@@ -20,7 +21,7 @@ function VKDevice.new(adapter)
 		},
 	})
 
-	local device = setmetatable({ handle = handle }, VKDevice)
+	local device = setmetatable({ pd = adapter.pd, handle = handle }, VKDevice)
 	device.queue = VKQueue.new(device, adapter.gfxQueueFamilyIdx, 0)
 
 	return device
