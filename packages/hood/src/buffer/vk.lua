@@ -19,6 +19,14 @@ function VKBuffer.new(device, descriptor)
 			vkUsage = bit.bor(vkUsage, vk.BufferUsage.INDEX_BUFFER)
 		elseif usage == "UNIFORM" then
 			vkUsage = bit.bor(vkUsage, vk.BufferUsage.UNIFORM_BUFFER)
+		elseif usage == "COPY_DST" then
+			vkUsage = bit.bor(vkUsage, vk.BufferUsage.TRANSFER_DST)
+		elseif usage == "COPY_SRC" then
+			vkUsage = bit.bor(vkUsage, vk.BufferUsage.TRANSFER_SRC)
+		elseif usage == "STORAGE" then
+			vkUsage = bit.bor(vkUsage, vk.BufferUsage.STORAGE_BUFFER)
+		else
+			error("Invalid buffer usage: " .. tostring(usage))
 		end
 	end
 
