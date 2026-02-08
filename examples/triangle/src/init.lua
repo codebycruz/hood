@@ -43,12 +43,12 @@ local indices = { 0, 1, 2 }
 -- Create vertex and index buffers
 local vertexBuffer = device:createBuffer({
 	size = vertexLayout:getStride() * 3,
-	usages = { "VERTEX" },
+	usages = { "VERTEX", "COPY_DST" },
 })
 
 local indexBuffer = device:createBuffer({
 	size = ffi.sizeof("uint32_t") * 3,
-	usages = { "INDEX" },
+	usages = { "INDEX", "COPY_DST" },
 })
 
 -- Write data to buffers
