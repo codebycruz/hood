@@ -9,12 +9,12 @@ VKCommandBuffer.__index = VKCommandBuffer
 
 ---@param device hood.vk.Device
 function VKCommandBuffer.new(device)
-	local pool = vk.createCommandPool(device.device, {
+	local pool = device.handle:createCommandPool({
 		flags = vk.CommandPoolCreateFlagBits.RESET_COMMAND_BUFFER,
 		queueFamilyIndex = device.queue.familyIdx,
 	})
 
-	local buffer = vk.allocateCommandBuffers(device.device, {
+	local buffer = device.handle:allocateCommandBuffers({
 		commandPool = pool,
 		level = vk.CommandBufferLevel.PRIMARY,
 		commandBufferCount = 1,

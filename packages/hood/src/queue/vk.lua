@@ -5,7 +5,7 @@ local VKCommandEncoder = require("hood.command_encoder.vk")
 
 ---@class hood.vk.Queue
 ---@field device hood.vk.Device
----@field queue vk.Queue
+---@field handle vk.ffi.Queue
 ---@field familyIdx number
 ---@field idx number
 local VKQueue = {}
@@ -15,8 +15,8 @@ VKQueue.__index = VKQueue
 ---@param familyIdx number
 ---@param idx number
 function VKQueue.new(device, familyIdx, idx)
-	local queue = vk.getDeviceQueue(device.device, familyIdx, idx)
-	return setmetatable({ device = device, queue = queue, familyIdx = familyIdx, idx = idx }, VKQueue)
+	local handle = device.handle:getDeviceQueue(familyIdx, idx)
+	return setmetatable({ device = device, handle = handle, familyIdx = familyIdx, idx = idx }, VKQueue)
 end
 
 ---@type vk.ffi.SubmitInfo
@@ -30,7 +30,7 @@ function VKQueue:submit(buffer)
 	submitInfo1.commandBufferCount = 1
 	submitInfo1.pCommandBuffers = ffi.new("VkCommandBuffer[1]", buffer.buffer)
 
-	vk.queueSubmit(self.queue, submitInfoTbl, nil)
+	self.device.handle:queueSubmit(self.handle, submitInfoTbl, nil)
 end
 
 --- Helper method to write data to a buffer

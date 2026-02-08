@@ -10,9 +10,6 @@ for k, v in pairs(vkEnums) do
 	vk[k] = v
 end
 
-local VKDevice = require("hood-vulkan.device")(vk)
-vk.Device = VKDevice
-
 local VKInstance = require("hood-vulkan.instance")(vk)
 
 do
@@ -32,29 +29,6 @@ do
 		end
 
 		return VKInstance.new(instance[0])
-	end
-
-	---@param instance vk.Instance
-	---@return vk.ffi.PhysicalDevice[]
-	function vk.enumeratePhysicalDevices(instance)
-		local deviceCount = ffi.new("uint32_t[1]", 0)
-		local result = C.vkEnumeratePhysicalDevices(instance, deviceCount, nil)
-		if result ~= 0 then
-			error("Failed to enumerate physical devices, error code: " .. tostring(result))
-		end
-
-		local devices = ffi.new("VkPhysicalDevice[?]", deviceCount[0])
-		result = C.vkEnumeratePhysicalDevices(instance, deviceCount, devices)
-		if result ~= 0 then
-			error("Failed to enumerate physical devices, error code: " .. tostring(result))
-		end
-
-		local deviceList = {}
-		for i = 0, deviceCount[0] - 1 do
-			deviceList[i + 1] = devices[i]
-		end
-
-		return deviceList
 	end
 
 	---@param physicalDevice vk.ffi.PhysicalDevice

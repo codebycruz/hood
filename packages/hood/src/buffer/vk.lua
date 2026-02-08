@@ -1,13 +1,13 @@
 local vk = require("hood-vulkan")
 
 ---@class hood.vk.Buffer
----@field buffer vk.Buffer
----@field device vk.Device
+---@field handle vk.ffi.Buffer
+---@field device hood.vk.Device
 ---@field descriptor hood.BufferDescriptor
 local VKBuffer = {}
 VKBuffer.__index = VKBuffer
 
----@param device vk.Device
+---@param device hood.vk.Device
 ---@param descriptor hood.BufferDescriptor
 function VKBuffer.new(device, descriptor)
 	local vkUsage = 0
@@ -27,13 +27,13 @@ function VKBuffer.new(device, descriptor)
 	end
 
 	---@diagnostic disable-next-line: assign-type-mismatch: vkUsage is checked above
-	local buffer = vk.createBuffer(device, { size = descriptor.size, usage = vkUsage })
+	local handle = device.handle:createBuffer({ size = descriptor.size, usage = vkUsage })
 
-	return setmetatable({ device = device, buffer = buffer, descriptor = descriptor }, VKBuffer)
+	return setmetatable({ device = device, handle = handle, descriptor = descriptor }, VKBuffer)
 end
 
 function VKBuffer:destroy()
-	vk.destroyBuffer(self.device, self.buffer)
+	self.device:destroyBuffer(self.handle)
 end
 
 function VKBuffer:__tostring()

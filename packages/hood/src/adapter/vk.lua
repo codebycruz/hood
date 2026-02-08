@@ -3,13 +3,15 @@ local vk = require("hood-vulkan")
 local VKDevice = require("hood.device.vk")
 
 ---@class hood.vk.Adapter
----@field pd vk.PhysicalDevice
+---@field instance hood.vk.Instance
+---@field pd vk.ffi.PhysicalDevice
 ---@field gfxQueueFamilyIdx number
 local VKAdapter = {}
 VKAdapter.__index = VKAdapter
 
----@param physicalDevice vk.PhysicalDevice
-function VKAdapter.new(physicalDevice)
+---@param instance hood.vk.Instance
+---@param physicalDevice vk.ffi.PhysicalDevice
+function VKAdapter.new(instance, physicalDevice)
 	local queueFamilies = vk.getPhysicalDeviceQueueFamilyProperties(physicalDevice)
 
 	local gfxQueueFamilyIdx = nil
@@ -24,7 +26,7 @@ function VKAdapter.new(physicalDevice)
 		error("No graphics queue family found")
 	end
 
-	return setmetatable({ pd = physicalDevice, gfxQueueFamilyIdx = gfxQueueFamilyIdx }, VKAdapter)
+	return setmetatable({ instance = instance, pd = physicalDevice, gfxQueueFamilyIdx = gfxQueueFamilyIdx }, VKAdapter)
 end
 
 function VKAdapter:requestDevice()
