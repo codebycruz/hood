@@ -4,6 +4,7 @@ local VKCommandBuffer = require("hood.command_buffer.vk")
 
 ---@class hood.vk.CommandEncoder
 ---@field buffer hood.vk.CommandBuffer
+---@field device hood.vk.Device
 local VKCommandEncoder = {}
 VKCommandEncoder.__index = VKCommandEncoder
 
@@ -11,7 +12,7 @@ VKCommandEncoder.__index = VKCommandEncoder
 ---@return hood.vk.CommandEncoder
 function VKCommandEncoder.new(device)
 	local buffer = VKCommandBuffer.new(device)
-	return setmetatable({ buffer = buffer }, VKCommandEncoder)
+	return setmetatable({ device = device, buffer = buffer }, VKCommandEncoder)
 end
 
 ---@type table<hood.RenderPassDescriptor, { beginInfo: vk.ffi.RenderPassBeginInfo, renderPass }>
@@ -29,7 +30,7 @@ function VKCommandEncoder:beginRendering(descriptor)
 		-- cachedDescriptors[descriptor] = vkDescriptor
 	end
 
-	vk.cmdBeginRenderPass(self.buffer.buffer, descriptor.renderPassBeginInfo, vk.SubpassContents.INLINE)
+	vk.cmdBeginRenderPass(self.buffer.handle, descriptor.renderPassBeginInfo, vk.SubpassContents.INLINE)
 end
 
 ---@param buffer hood.vk.Buffer
@@ -37,7 +38,7 @@ end
 ---@param data ffi.cdata*
 ---@param offset number?
 function VKCommandEncoder:writeBuffer(buffer, size, data, offset)
-	vk.cmdUpdateBuffer(self.buffer.buffer, buffer.buffer, offset or 0, size, data)
+	self.device.handle:cmdUpdateBuffer(self.buffer.handle, buffer.handle, offset or 0, size, data)
 end
 
 function VKCommandEncoder:finish()

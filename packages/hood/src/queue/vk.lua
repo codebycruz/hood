@@ -28,7 +28,7 @@ local submitInfoTbl = { submitInfo1 }
 ---@param buffer hood.vk.CommandBuffer
 function VKQueue:submit(buffer)
 	submitInfo1.commandBufferCount = 1
-	submitInfo1.pCommandBuffers = ffi.new("VkCommandBuffer[1]", buffer.buffer)
+	submitInfo1.pCommandBuffers = ffi.new("VkCommandBuffer[1]", buffer.handle)
 
 	self.device.handle:queueSubmit(self.handle, submitInfoTbl, nil)
 end

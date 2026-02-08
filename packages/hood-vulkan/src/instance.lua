@@ -10,16 +10,60 @@ return function(vk)
 	local VKInstance = {}
 	VKInstance.__index = VKInstance
 
+	---@class vk.DeviceQueueCreateInfo
+	---@field queueFamilyIndex integer
+	---@field queueCount integer
+	---@field queuePriorities number[]
+
+	---@class vk.DeviceCreateInfo
+	---@field queueCreateInfos vk.DeviceQueueCreateInfo[]
+	---@field enabledExtensionNames vk.DeviceExtensionName[]
+
 	---@param physicalDevice vk.ffi.PhysicalDevice
-	---@param info vk.ffi.DeviceCreateInfo?
+	---@param info vk.DeviceCreateInfo?
 	---@param allocator ffi.cdata*?
 	---@return vk.Device
 	function VKInstance:createDevice(physicalDevice, info, allocator)
 		local device = ffi.new("VkDevice[1]")
-		local info = ffi.new("VkDeviceCreateInfo", info or {})
-		info.sType = vk.StructureType.DEVICE_CREATE_INFO
+		info = info or {}
 
-		local result = self.v1_0.vkCreateDevice(physicalDevice, info, allocator, device)
+		-- Convert queue create infos
+		local queueCreateInfos = nil
+		local queueCreateInfoCount = 0
+		if info.queueCreateInfos and #info.queueCreateInfos > 0 then
+			queueCreateInfoCount = #info.queueCreateInfos
+			queueCreateInfos = ffi.new("VkDeviceQueueCreateInfo[?]", queueCreateInfoCount)
+			for i, qci in ipairs(info.queueCreateInfos) do
+				queueCreateInfos[i - 1] = ffi.new("VkDeviceQueueCreateInfo", {
+					sType = vk.StructureType.DEVICE_QUEUE_CREATE_INFO,
+					queueFamilyIndex = qci.queueFamilyIndex,
+					queueCount = qci.queueCount,
+					pQueuePriorities = ffi.new("float[?]", #qci.queuePriorities, qci.queuePriorities),
+				})
+			end
+		end
+
+		-- Convert extension names
+		local extensionNames = nil
+		local extensionCount = 0
+		if info.enabledExtensionNames and #info.enabledExtensionNames > 0 then
+			extensionCount = #info.enabledExtensionNames
+			extensionNames = ffi.new("const char*[?]", extensionCount)
+			for i, name in ipairs(info.enabledExtensionNames) do
+				extensionNames[i - 1] = name
+			end
+		end
+
+		local deviceCreateInfo = ffi.new("VkDeviceCreateInfo", {
+			sType = vk.StructureType.DEVICE_CREATE_INFO,
+			queueCreateInfoCount = queueCreateInfoCount,
+			pQueueCreateInfos = queueCreateInfos,
+			enabledExtensionCount = extensionCount,
+			ppEnabledExtensionNames = extensionNames,
+			-- The other stuff is legacy so leave it zeroed
+		})
+
+		local result = self.v1_0.vkCreateDevice(physicalDevice, deviceCreateInfo, allocator, device)
 		if result ~= 0 then
 			error("Failed to create Vulkan device, error code: " .. tostring(result))
 		end

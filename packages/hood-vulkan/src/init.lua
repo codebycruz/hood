@@ -25,7 +25,7 @@ do
 	---@class vk.InstanceCreateInfo
 	---@field applicationInfo vk.ApplicationInfo
 	---@field enabledLayerNames string[]
-	---@field enabledExtensionNames string[]
+	---@field enabledExtensionNames vk.InstanceExtensionName[]
 
 	---@param info vk.InstanceCreateInfo
 	---@param allocator ffi.cdata*?

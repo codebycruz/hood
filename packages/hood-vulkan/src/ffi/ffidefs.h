@@ -356,8 +356,17 @@ typedef struct {
   VkStructureType sType;
   const void *pNext;
   VkFlags flags;
+  uint32_t queueFamilyIndex;
+  uint32_t queueCount;
+  const float *pQueuePriorities;
+} VkDeviceQueueCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
   uint32_t queueCreateInfoCount;
-  const void *pQueueCreateInfos;
+  const VkDeviceQueueCreateInfo *pQueueCreateInfos;
   uint32_t _enabledLayerCount;
   const char *const *_ppEnabledLayerNames;
   uint32_t enabledExtensionCount;

@@ -3,7 +3,7 @@ local vk = require("hood-vulkan")
 ---@class hood.vk.CommandBuffer
 ---@field device hood.vk.Device
 ---@field pool vk.CommandPool
----@field buffer vk.CommandBuffer
+---@field handle vk.ffi.CommandBuffer
 local VKCommandBuffer = {}
 VKCommandBuffer.__index = VKCommandBuffer
 
@@ -14,7 +14,7 @@ function VKCommandBuffer.new(device)
 		queueFamilyIndex = device.queue.familyIdx,
 	})
 
-	local buffer = device.handle:allocateCommandBuffers({
+	local handle = device.handle:allocateCommandBuffers({
 		commandPool = pool,
 		level = vk.CommandBufferLevel.PRIMARY,
 		commandBufferCount = 1,
@@ -23,7 +23,7 @@ function VKCommandBuffer.new(device)
 	return setmetatable({
 		device = device,
 		pool = pool,
-		buffer = buffer,
+		handle = handle,
 	}, VKCommandBuffer)
 end
 

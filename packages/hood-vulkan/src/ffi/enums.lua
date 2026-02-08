@@ -8,6 +8,15 @@ vk.ApiVersion = {
 	V1_2 = 0x00402000,
 }
 
+---@alias vk.InstanceExtensionName
+--- | "VK_KHR_surface"
+--- | "VK_KHR_win32_surface"
+--- | "VK_KHR_xcb_surface"
+--- | "VK_KHR_xlib_surface"
+
+---@alias vk.DeviceExtensionName
+--- | "VK_KHR_swapchain"
+
 ---@enum vk.PhysicalDeviceType
 vk.PhysicalDeviceType = {
 	OTHER = 0,

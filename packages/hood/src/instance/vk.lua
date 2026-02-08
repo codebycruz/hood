@@ -27,7 +27,7 @@ function VKInstance.new(descriptor)
 			apiVersion = vk.ApiVersion.V1_0
 		},
 		enabledLayerNames = hasValidate and { "VK_LAYER_KHRONOS_validation" },
-		enabledExtensionNames = {}
+		enabledExtensionNames = { "VK_KHR_surface" }
 	})
 
 	return setmetatable({ handle = handle }, VKInstance)

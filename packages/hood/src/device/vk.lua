@@ -1,5 +1,3 @@
-local vk = require("hood-vulkan")
-
 local VKBuffer = require("hood.buffer.vk")
 local VKQueue = require("hood.queue.vk")
 
@@ -12,10 +10,12 @@ VKDevice.__index = VKDevice
 ---@param adapter hood.vk.Adapter
 function VKDevice.new(adapter)
 	local handle = adapter.instance.handle:createDevice(adapter.pd, {
+		enabledExtensionNames = { "VK_KHR_swapchain" },
 		queueCreateInfos = {
 			{
 				queueFamilyIndex = adapter.gfxQueueFamilyIdx,
 				queuePriorities = { 1.0 },
+				queueCount = 1,
 			},
 		},
 	})
