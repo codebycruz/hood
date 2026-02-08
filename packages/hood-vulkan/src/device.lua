@@ -56,7 +56,7 @@ return function(vk)
 		return pipelineLayout[0]
 	end
 
-	---@param pipelineCache number?
+	---@param pipelineCache vk.ffi.PipelineCache?
 	---@param infos vk.ffi.GraphicsPipelineCreateInfo[]
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.Pipeline[]
@@ -485,7 +485,7 @@ return function(vk)
 	---@field vkDestroyBuffer fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, allocator: ffi.cdata*?)
 	---@field vkCreateShaderModule fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, shaderModule: ffi.cdata*): vk.ffi.Result
 	---@field vkCreatePipelineLayout fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, pipelineLayout: ffi.cdata*): vk.ffi.Result
-	---@field vkCreateGraphicsPipelines fun(device: vk.ffi.Device, pipelineCache: number, count: number, infos: ffi.cdata*, allocator: ffi.cdata*?, pipelines: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateGraphicsPipelines fun(device: vk.ffi.Device, pipelineCache: vk.ffi.PipelineCache, count: number, infos: ffi.cdata*, allocator: ffi.cdata*?, pipelines: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateRenderPass fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, renderPass: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateFramebuffer fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, framebuffer: ffi.cdata*): vk.ffi.Result
 	---@field vkGetBufferMemoryRequirements fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, memRequirements: ffi.cdata*)

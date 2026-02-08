@@ -9,6 +9,7 @@ typedef unsigned char uint8_t;
 
 typedef void *VkInstance;
 typedef void *VkDevice;
+typedef void *VkPipelineCache;
 typedef int32_t VkResult;
 typedef int32_t VkStructureType;
 typedef uint32_t VkFlags;
@@ -686,7 +687,7 @@ VkResult vkCreatePipelineLayout(VkDevice device,
                                 VkPipelineLayout *pPipelineLayout);
 
 VkResult vkCreateGraphicsPipelines(
-    VkDevice device, uint64_t pipelineCache, uint32_t createInfoCount,
+    VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
     const VkGraphicsPipelineCreateInfo *pCreateInfos,
     const VkAllocationCallbacks *pAllocator, VkPipeline *pPipelines);
 

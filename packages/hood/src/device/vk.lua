@@ -1,5 +1,6 @@
 local VKBuffer = require("hood.buffer.vk")
 local VKQueue = require("hood.queue.vk")
+local VKPipeline = require("hood.pipeline.vk")
 
 ---@class hood.vk.Device
 ---@field public queue hood.vk.Queue
@@ -30,6 +31,11 @@ end
 ---@param descriptor hood.BufferDescriptor
 function VKDevice:createBuffer(descriptor)
 	return VKBuffer.new(self, descriptor)
+end
+
+---@param descriptor hood.PipelineDescriptor
+function VKDevice:createPipeline(descriptor)
+	return VKPipeline.new(self, descriptor)
 end
 
 return VKDevice

@@ -7,6 +7,7 @@
 ---@class vk.ffi.Result: number
 ---@class vk.ffi.PhysicalDevice: ffi.cdata*
 ---@class vk.ffi.Device: number
+---@class vk.ffi.PipelineCache: number
 ---@class vk.ffi.DeviceSize: number
 ---@class vk.ffi.Buffer: number
 ---@class vk.ffi.PipelineLayout: number
@@ -135,9 +136,38 @@
 ---@field pushConstantRangeCount number?
 ---@field pPushConstantRanges userdata?
 
+---@class vk.ffi.SpecializationInfo: ffi.cdata*
+---@field mapEntryCount number
+---@field pMapEntries ffi.cdata*
+---@field dataSize number
+---@field pData ffi.cdata*
+
+---@class vk.ffi.PipelineShaderStageCreateInfo: vk.ffi.BaseStruct
+---@field stage vk.ShaderStageFlagBits
+---@field module vk.ffi.ShaderModule
+---@field pName ffi.cdata*
+---@field pSpecializationInfo vk.ffi.SpecializationInfo?
+
+---@class vk.ffi.VertexInputBindingDescription: ffi.cdata*
+---@field binding number
+---@field stride number
+---@field inputRate vk.VertexInputRate
+
+---@class vk.ffi.VertexInputAttributeDescription: ffi.cdata*
+---@field location number
+---@field binding number
+---@field format vk.Format
+---@field offset number
+
+---@class vk.ffi.PipelineVertexInputStateCreateInfo: vk.ffi.BaseStruct
+---@field vertexBindingDescriptionCount number
+---@field pVertexBindingDescriptions vk.ffi.VertexInputBindingDescription*
+---@field vertexAttributeDescriptionCount number
+---@field pVertexAttributeDescriptions vk.ffi.VertexInputAttributeDescription*
+
 ---@class vk.ffi.GraphicsPipelineCreateInfo: vk.ffi.BaseStruct
 ---@field stageCount number
----@field pStages userdata
+---@field pStages vk.ffi.PipelineShaderStageCreateInfo
 ---@field pVertexInputState userdata?
 ---@field pInputAssemblyState userdata?
 ---@field pTessellationState userdata?
