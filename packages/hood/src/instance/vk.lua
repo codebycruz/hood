@@ -4,6 +4,7 @@ local VKAdapter = require("hood.adapter.vk")
 local VKSurface = require("hood.surface.vk")
 
 ---@class hood.vk.Instance
+---@field instance vk.Instance
 local VKInstance = {}
 VKInstance.__index = VKInstance
 
@@ -26,7 +27,7 @@ function VKInstance:requestAdapter(config)
 		and 1 or -1
 
 	local devices = {}
-	for _, physicalDevice in ipairs(vk.enumeratePhysicalDevices()) do
+	for _, physicalDevice in ipairs(vk.enumeratePhysicalDevices(self.instance)) do
 		local props = vk.getPhysicalDeviceProperties(physicalDevice)
 		local ordering = deviceOrdering[props.deviceType] * deviceOrderingFlip
 

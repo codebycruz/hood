@@ -8,9 +8,10 @@ return function(vk)
 	local VKInstance = {}
 	VKInstance.__index = VKInstance
 
-	---@param physicalDevice vk.PhysicalDevice
+	---@param physicalDevice vk.ffi.PhysicalDevice
 	---@param info vk.ffi.DeviceCreateInfo?
 	---@param allocator ffi.cdata*?
+	---@return vk.Device
 	function VKInstance:createDevice(physicalDevice, info, allocator)
 		local device = ffi.new("VkDevice[1]")
 		local info = ffi.new("VkDeviceCreateInfo", info or {})
@@ -21,11 +22,11 @@ return function(vk)
 			error("Failed to create Vulkan device, error code: " .. tostring(result))
 		end
 
-		return device[0] --[[@as vk.ffi.Device]]
+		return vk.Device.new(device[0])
 	end
 
 	---@class vk.Instance.Fns
-	---@field vkCreateDevice fun(physicalDevice: vk.PhysicalDevice, info: vk.ffi.DeviceCreateInfo?, allocator: ffi.cdata*?, device: vk.ffi.Device*): vk.Result
+	---@field vkCreateDevice fun(physicalDevice: vk.ffi.PhysicalDevice, info: vk.ffi.DeviceCreateInfo?, allocator: ffi.cdata*?, device: vk.ffi.Device*): vk.ffi.Result
 
 	---@param handle vk.ffi.Instance
 	function VKInstance.new(handle)

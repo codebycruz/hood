@@ -8,12 +8,562 @@ return function(vk)
 	local VKDevice = {}
 	VKDevice.__index = VKDevice
 
+	---@param info vk.ffi.BufferCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Buffer
+	function VKDevice:createBuffer(info, allocator)
+		local info = ffi.new("VkBufferCreateInfo", info)
+		info.sType = vk.StructureType.BUFFER_CREATE_INFO
+		local buffer = ffi.new("VkBuffer[1]")
+		local result = self.v1_0.vkCreateBuffer(self.handle, info, allocator, buffer)
+		if result ~= 0 then
+			error("Failed to create Vulkan buffer, error code: " .. tostring(result))
+		end
+		return buffer[0]
+	end
+
+	---@param buffer vk.ffi.Buffer
+	---@param allocator ffi.cdata*?
+	function VKDevice:destroyBuffer(buffer, allocator)
+		self.v1_0.vkDestroyBuffer(self.handle, buffer, allocator)
+	end
+
+	---@param info vk.ffi.ShaderModuleCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.ShaderModule
+	function VKDevice:createShaderModule(info, allocator)
+		local info = ffi.new("VkShaderModuleCreateInfo", info)
+		info.sType = vk.StructureType.SHADER_MODULE_CREATE_INFO
+		local shaderModule = ffi.new("VkShaderModule[1]")
+		local result = self.v1_0.vkCreateShaderModule(self.handle, info, allocator, shaderModule)
+		if result ~= 0 then
+			error("Failed to create Vulkan shader module, error code: " .. tostring(result))
+		end
+		return shaderModule[0]
+	end
+
+	---@param info vk.ffi.PipelineLayoutCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.PipelineLayout
+	function VKDevice:createPipelineLayout(info, allocator)
+		local info = ffi.new("VkPipelineLayoutCreateInfo", info)
+		info.sType = vk.StructureType.PIPELINE_LAYOUT_CREATE_INFO
+		local pipelineLayout = ffi.new("VkPipelineLayout[1]")
+		local result = self.v1_0.vkCreatePipelineLayout(self.handle, info, allocator, pipelineLayout)
+		if result ~= 0 then
+			error("Failed to create Vulkan pipeline layout, error code: " .. tostring(result))
+		end
+		return pipelineLayout[0]
+	end
+
+	---@param pipelineCache number?
+	---@param infos vk.ffi.GraphicsPipelineCreateInfo[]
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Pipeline[]
+	function VKDevice:createGraphicsPipelines(pipelineCache, infos, allocator)
+		local count = #infos
+		local infoArray = ffi.new("VkGraphicsPipelineCreateInfo[?]", count)
+		for i = 1, count do
+			local info = ffi.new("VkGraphicsPipelineCreateInfo", infos[i])
+			info.sType = vk.StructureType.GRAPHICS_PIPELINE_CREATE_INFO
+			infoArray[i - 1] = info
+		end
+		local pipelines = ffi.new("VkPipeline[?]", count)
+		local result = self.v1_0.vkCreateGraphicsPipelines(self.handle, pipelineCache or 0, count, infoArray, allocator,
+			pipelines)
+		if result ~= 0 then
+			error("Failed to create Vulkan graphics pipelines, error code: " .. tostring(result))
+		end
+		local pipelineList = {}
+		for i = 0, count - 1 do
+			pipelineList[i + 1] = pipelines[i]
+		end
+		return pipelineList
+	end
+
+	---@param info vk.ffi.RenderPassCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.RenderPass
+	function VKDevice:createRenderPass(info, allocator)
+		local info = ffi.new("VkRenderPassCreateInfo", info)
+		info.sType = vk.StructureType.RENDER_PASS_CREATE_INFO
+		local renderPass = ffi.new("VkRenderPass[1]")
+		local result = self.v1_0.vkCreateRenderPass(self.handle, info, allocator, renderPass)
+		if result ~= 0 then
+			error("Failed to create Vulkan render pass, error code: " .. tostring(result))
+		end
+		return renderPass[0]
+	end
+
+	---@param info vk.ffi.FramebufferCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Framebuffer
+	function VKDevice:createFramebuffer(info, allocator)
+		local info = ffi.new("VkFramebufferCreateInfo", info)
+		info.sType = vk.StructureType.FRAMEBUFFER_CREATE_INFO
+		local framebuffer = ffi.new("VkFramebuffer[1]")
+		local result = self.v1_0.vkCreateFramebuffer(self.handle, info, allocator, framebuffer)
+		if result ~= 0 then
+			error("Failed to create Vulkan framebuffer, error code: " .. tostring(result))
+		end
+		return framebuffer[0]
+	end
+
+	---@param info vk.ffi.CommandPoolCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.CommandPool
+	function VKDevice:createCommandPool(info, allocator)
+		local createInfo = ffi.new("VkCommandPoolCreateInfo", info)
+		createInfo.sType = vk.StructureType.COMMAND_POOL_CREATE_INFO
+		local commandPool = ffi.new("VkCommandPool[1]")
+		local result = self.v1_0.vkCreateCommandPool(self.handle, createInfo, allocator, commandPool)
+		if result ~= 0 then
+			error("Failed to create Vulkan command pool, error code: " .. tostring(result))
+		end
+		return commandPool[0]
+	end
+
+	---@param buffer vk.ffi.Buffer
+	---@return vk.ffi.MemoryRequirements
+	function VKDevice:getBufferMemoryRequirements(buffer)
+		local memRequirements = ffi.new("VkMemoryRequirements")
+		self.v1_0.vkGetBufferMemoryRequirements(self.handle, buffer, memRequirements)
+		return memRequirements
+	end
+
+	---@param image vk.ffi.Image
+	---@return vk.ffi.MemoryRequirements
+	function VKDevice:getImageMemoryRequirements(image)
+		local memRequirements = ffi.new("VkMemoryRequirements")
+		self.v1_0.vkGetImageMemoryRequirements(self.handle, image, memRequirements)
+		return memRequirements
+	end
+
+	---@param createInfo vk.ffi.CreateImageInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Image
+	function VKDevice:createImage(createInfo, allocator)
+		local image = ffi.new("VkImage[1]")
+		local result = self.v1_0.vkCreateImage(self.handle, createInfo, allocator, image)
+		if result ~= 0 then
+			error("Failed to create Vulkan image, error code: " .. tostring(result))
+		end
+		return image[0]
+	end
+
+	---@param image vk.ffi.Image
+	---@param memory vk.ffi.DeviceMemory
+	---@param memoryOffset vk.ffi.DeviceSize
+	function VKDevice:bindImageMemory(image, memory, memoryOffset)
+		local result = self.v1_0.vkBindImageMemory(self.handle, image, memory, memoryOffset)
+		if result ~= 0 then
+			error("Failed to bind image memory, error code: " .. tostring(result))
+		end
+	end
+
+	---@param info vk.ffi.MemoryAllocateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.DeviceMemory
+	function VKDevice:allocateMemory(info, allocator)
+		local allocInfo = ffi.new("VkMemoryAllocateInfo", info)
+		allocInfo.sType = vk.StructureType.MEMORY_ALLOCATE_INFO
+		local memory = ffi.new("VkDeviceMemory[1]")
+		local result = self.v1_0.vkAllocateMemory(self.handle, allocInfo, allocator, memory)
+		if result ~= 0 then
+			error("Failed to allocate Vulkan memory, error code: " .. tostring(result))
+		end
+		return memory[0]
+	end
+
+	---@param buffer vk.ffi.Buffer
+	---@param memory vk.ffi.DeviceMemory
+	---@param memoryOffset vk.ffi.DeviceSize
+	function VKDevice:bindBufferMemory(buffer, memory, memoryOffset)
+		local result = self.v1_0.vkBindBufferMemory(self.handle, buffer, memory, memoryOffset)
+		if result ~= 0 then
+			error("Failed to bind buffer memory, error code: " .. tostring(result))
+		end
+	end
+
+	---@param memory vk.ffi.DeviceMemory
+	---@param offset number
+	---@param size number
+	---@param flags number?
+	---@return ffi.cdata*
+	function VKDevice:mapMemory(memory, offset, size, flags)
+		local data = ffi.new("void*[1]")
+		local result = self.v1_0.vkMapMemory(self.handle, memory, offset, size, flags or 0, data)
+		if result ~= 0 then
+			error("Failed to map memory, error code: " .. tostring(result))
+		end
+		return data[0]
+	end
+
+	---@param memory vk.ffi.DeviceMemory
+	function VKDevice:unmapMemory(memory)
+		self.v1_0.vkUnmapMemory(self.handle, memory)
+	end
+
+	---@param info vk.ffi.DescriptorSetLayoutCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.DescriptorSetLayout
+	function VKDevice:createDescriptorSetLayout(info, allocator)
+		local createInfo = ffi.new("VkDescriptorSetLayoutCreateInfo", info)
+		createInfo.sType = vk.StructureType.DESCRIPTOR_SET_LAYOUT_CREATE_INFO
+		local layout = ffi.new("VkDescriptorSetLayout[1]")
+		local result = self.v1_0.vkCreateDescriptorSetLayout(self.handle, createInfo, allocator, layout)
+		if result ~= 0 then
+			error("Failed to create Vulkan descriptor set layout, error code: " .. tostring(result))
+		end
+		return layout[0]
+	end
+
+	---@param info vk.ffi.DescriptorPoolCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.DescriptorPool
+	function VKDevice:createDescriptorPool(info, allocator)
+		local createInfo = ffi.new("VkDescriptorPoolCreateInfo", info)
+		createInfo.sType = vk.StructureType.DESCRIPTOR_POOL_CREATE_INFO
+		local pool = ffi.new("VkDescriptorPool[1]")
+		local result = self.v1_0.vkCreateDescriptorPool(self.handle, createInfo, allocator, pool)
+		if result ~= 0 then
+			error("Failed to create Vulkan descriptor pool, error code: " .. tostring(result))
+		end
+		return pool[0]
+	end
+
+	---@param info vk.ffi.DescriptorSetAllocateInfo
+	---@return vk.ffi.DescriptorSet[]
+	function VKDevice:allocateDescriptorSets(info)
+		local allocInfo = ffi.new("VkDescriptorSetAllocateInfo", info)
+		allocInfo.sType = vk.StructureType.DESCRIPTOR_SET_ALLOCATE_INFO
+		local descriptorSets = ffi.new("VkDescriptorSet[?]", info.descriptorSetCount)
+		local result = self.v1_0.vkAllocateDescriptorSets(self.handle, allocInfo, descriptorSets)
+		if result ~= 0 then
+			error("Failed to allocate Vulkan descriptor sets, error code: " .. tostring(result))
+		end
+		local sets = {}
+		for i = 0, info.descriptorSetCount - 1 do
+			sets[i + 1] = descriptorSets[i]
+		end
+		return sets
+	end
+
+	---@param writes vk.ffi.WriteDescriptorSet[]
+	function VKDevice:updateDescriptorSets(writes)
+		local count = #writes
+		local writeArray = ffi.new("VkWriteDescriptorSet[?]", count)
+		for i, write in ipairs(writes) do
+			local w = ffi.new("VkWriteDescriptorSet", write)
+			w.sType = vk.StructureType.WRITE_DESCRIPTOR_SET
+			writeArray[i - 1] = w
+		end
+		self.v1_0.vkUpdateDescriptorSets(self.handle, count, writeArray, 0, nil)
+	end
+
+	---@param info vk.ffi.CommandBufferAllocateInfo
+	---@return vk.ffi.CommandBuffer[]
+	function VKDevice:allocateCommandBuffers(info)
+		local info = ffi.new("VkCommandBufferAllocateInfo", info)
+		info.sType = vk.StructureType.COMMAND_BUFFER_ALLOCATE_INFO
+		local commandBuffers = ffi.new("VkCommandBuffer[?]", info.commandBufferCount)
+		local result = self.v1_0.vkAllocateCommandBuffers(self.handle, info, commandBuffers)
+		if result ~= 0 then
+			error("Failed to allocate Vulkan command buffers, error code: " .. tostring(result))
+		end
+		local commandBufferList = {}
+		for i = 0, info.commandBufferCount - 1 do
+			commandBufferList[i + 1] = commandBuffers[i]
+		end
+		return commandBufferList
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param info vk.ffi.CommandBufferBeginInfo?
+	function VKDevice:beginCommandBuffer(commandBuffer, info)
+		local info = ffi.new("VkCommandBufferBeginInfo", info or {})
+		info.sType = vk.StructureType.COMMAND_BUFFER_BEGIN_INFO
+		local result = self.v1_0.vkBeginCommandBuffer(commandBuffer, info)
+		if result ~= 0 then
+			error("Failed to begin Vulkan command buffer, error code: " .. tostring(result))
+		end
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	function VKDevice:endCommandBuffer(commandBuffer)
+		local result = self.v1_0.vkEndCommandBuffer(commandBuffer)
+		if result ~= 0 then
+			error("Failed to end Vulkan command buffer, error code: " .. tostring(result))
+		end
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param info vk.ffi.RenderPassBeginInfo
+	---@param contents vk.SubpassContents
+	function VKDevice:cmdBeginRenderPass(commandBuffer, info, contents)
+		self.v1_0.vkCmdBeginRenderPass(commandBuffer, info, contents)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	function VKDevice:cmdEndRenderPass(commandBuffer)
+		self.v1_0.vkCmdEndRenderPass(commandBuffer)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param pipelineBindPoint vk.PipelineBindPoint
+	---@param pipeline vk.ffi.Pipeline
+	function VKDevice:cmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline)
+		self.v1_0.vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param pipelineBindPoint vk.PipelineBindPoint
+	---@param layout vk.ffi.PipelineLayout
+	---@param firstSet number
+	---@param descriptorSetCount number
+	---@param descriptorSets ffi.cdata*
+	---@param dynamicOffsetCount number
+	---@param dynamicOffsets ffi.cdata*?
+	function VKDevice:cmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount,
+											descriptorSets, dynamicOffsetCount, dynamicOffsets)
+		self.v1_0.vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount,
+			descriptorSets, dynamicOffsetCount, dynamicOffsets)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param vertexCount number
+	---@param instanceCount number
+	---@param firstVertex number
+	---@param firstInstance number
+	function VKDevice:cmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance)
+		self.v1_0.vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param dstBuffer vk.ffi.Buffer
+	---@param dstOffset vk.ffi.DeviceSize
+	---@param dataSize vk.ffi.DeviceSize
+	---@param pData ffi.cdata*
+	function VKDevice:cmdUpdateBuffer(commandBuffer, dstBuffer, dstOffset, dataSize, pData)
+		self.v1_0.vkCmdUpdateBuffer(commandBuffer, dstBuffer, dstOffset, dataSize, pData)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param srcBuffer vk.ffi.Buffer
+	---@param dstImage vk.ffi.Image
+	---@param dstImageLayout vk.ImageLayout
+	---@param regionCount number
+	---@param pRegions ffi.cdata*
+	function VKDevice:cmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions)
+		self.v1_0.vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions)
+	end
+
+	---@param queue vk.ffi.Queue
+	---@param submits vk.ffi.SubmitInfo[]
+	---@param fence number?
+	function VKDevice:queueSubmit(queue, submits, fence)
+		local count = #submits
+		local submitArray = ffi.new("VkSubmitInfo[?]", count)
+		for i = 1, count do
+			local submit = ffi.new("VkSubmitInfo", submits[i])
+			submit.sType = vk.StructureType.SUBMIT_INFO
+			submitArray[i - 1] = submit
+		end
+		local result = self.v1_0.vkQueueSubmit(queue, count, submitArray, fence or 0)
+		if result ~= 0 then
+			error("Failed to submit to Vulkan queue, error code: " .. tostring(result))
+		end
+	end
+
+	---@param queue vk.ffi.Queue
+	function VKDevice:queueWaitIdle(queue)
+		local result = self.v1_0.vkQueueWaitIdle(queue)
+		if result ~= 0 then
+			error("Failed to wait for Vulkan queue idle, error code: " .. tostring(result))
+		end
+	end
+
+	---@param queueFamilyIndex number
+	---@param queueIndex number
+	---@return vk.ffi.Queue
+	function VKDevice:getDeviceQueue(queueFamilyIndex, queueIndex)
+		local queue = ffi.new("VkQueue[1]")
+		self.v1_0.vkGetDeviceQueue(self.handle, queueFamilyIndex, queueIndex, queue)
+		return queue[0]
+	end
+
+	---@param info vk.ffi.SemaphoreCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Semaphore
+	function VKDevice:createSemaphore(info, allocator)
+		local createInfo = ffi.new("VkSemaphoreCreateInfo", info)
+		createInfo.sType = vk.StructureType.SEMAPHORE_CREATE_INFO
+		local semaphore = ffi.new("VkSemaphore[1]")
+		local result = self.v1_0.vkCreateSemaphore(self.handle, createInfo, allocator, semaphore)
+		if result ~= 0 then
+			error("Failed to create Vulkan semaphore, error code: " .. tostring(result))
+		end
+		return semaphore[0]
+	end
+
+	---@param info vk.ffi.FenceCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Fence
+	function VKDevice:createFence(info, allocator)
+		local createInfo = ffi.new("VkFenceCreateInfo", info)
+		createInfo.sType = vk.StructureType.FENCE_CREATE_INFO
+		local fence = ffi.new("VkFence[1]")
+		local result = self.v1_0.vkCreateFence(self.handle, createInfo, allocator, fence)
+		if result ~= 0 then
+			error("Failed to create Vulkan fence, error code: " .. tostring(result))
+		end
+		return fence[0]
+	end
+
+	---@param info vk.ffi.SwapchainCreateInfoKHR
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.SwapchainKHR
+	function VKDevice:createSwapchainKHR(info, allocator)
+		local info = ffi.new("VkSwapchainCreateInfoKHR", info)
+		info.sType = vk.StructureType.SWAPCHAIN_CREATE_INFO_KHR
+		local swapchain = ffi.new("VkSwapchainKHR[1]")
+		local result = self.v1_0.vkCreateSwapchainKHR(self.handle, info, allocator, swapchain)
+		if result ~= 0 then
+			error("Failed to create Vulkan swapchain, error code: " .. tostring(result))
+		end
+		return swapchain[0]
+	end
+
+	---@param swapchain vk.ffi.SwapchainKHR
+	---@return vk.ffi.Image[]
+	function VKDevice:getSwapchainImagesKHR(swapchain)
+		local count = ffi.new("uint32_t[1]")
+		local result = self.v1_0.vkGetSwapchainImagesKHR(self.handle, swapchain, count, nil)
+		if result ~= 0 then
+			error("Failed to get swapchain image count, error code: " .. tostring(result))
+		end
+		local images = ffi.new("VkImage[?]", count[0])
+		result = self.v1_0.vkGetSwapchainImagesKHR(self.handle, swapchain, count, images)
+		if result ~= 0 then
+			error("Failed to get swapchain images, error code: " .. tostring(result))
+		end
+		local imageTable = {}
+		for i = 0, count[0] - 1 do
+			imageTable[i + 1] = images[i]
+		end
+		return imageTable
+	end
+
+	---@param swapchain vk.ffi.SwapchainKHR
+	---@param timeout number
+	---@param semaphore vk.ffi.Semaphore?
+	---@param fence vk.ffi.Fence?
+	---@return number imageIndex
+	function VKDevice:acquireNextImageKHR(swapchain, timeout, semaphore, fence)
+		local imageIndex = ffi.new("uint32_t[1]")
+		local result = self.v1_0.vkAcquireNextImageKHR(self.handle, swapchain, timeout, semaphore or 0, fence or 0,
+			imageIndex)
+		if result ~= 0 then
+			error("Failed to acquire next swapchain image, error code: " .. tostring(result))
+		end
+		return imageIndex[0]
+	end
+
+	---@param queue vk.ffi.Queue
+	---@param info vk.ffi.PresentInfoKHR
+	function VKDevice:queuePresentKHR(queue, info)
+		local presentInfo = ffi.new("VkPresentInfoKHR", info)
+		presentInfo.sType = vk.StructureType.PRESENT_INFO_KHR
+		local result = self.v1_0.vkQueuePresentKHR(queue, presentInfo)
+		if result ~= 0 then
+			error("Failed to present queue, error code: " .. tostring(result))
+		end
+	end
+
 	---@class vk.Device.Fns
+	---@field vkCreateBuffer fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, buffer: ffi.cdata*): vk.ffi.Result
+	---@field vkDestroyBuffer fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, allocator: ffi.cdata*?)
+	---@field vkCreateShaderModule fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, shaderModule: ffi.cdata*): vk.ffi.Result
+	---@field vkCreatePipelineLayout fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, pipelineLayout: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateGraphicsPipelines fun(device: vk.ffi.Device, pipelineCache: number, count: number, infos: ffi.cdata*, allocator: ffi.cdata*?, pipelines: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateRenderPass fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, renderPass: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateFramebuffer fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, framebuffer: ffi.cdata*): vk.ffi.Result
+	---@field vkGetBufferMemoryRequirements fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, memRequirements: ffi.cdata*)
+	---@field vkGetImageMemoryRequirements fun(device: vk.ffi.Device, image: vk.ffi.Image, memRequirements: ffi.cdata*)
+	---@field vkCreateImage fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, image: ffi.cdata*): vk.ffi.Result
+	---@field vkBindImageMemory fun(device: vk.ffi.Device, image: vk.ffi.Image, memory: vk.ffi.DeviceMemory, offset: number): vk.ffi.Result
+	---@field vkAllocateMemory fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, memory: ffi.cdata*): vk.ffi.Result
+	---@field vkBindBufferMemory fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, memory: vk.ffi.DeviceMemory, offset: number): vk.ffi.Result
+	---@field vkMapMemory fun(device: vk.ffi.Device, memory: vk.ffi.DeviceMemory, offset: number, size: number, flags: number, data: ffi.cdata*): vk.ffi.Result
+	---@field vkUnmapMemory fun(device: vk.ffi.Device, memory: vk.ffi.DeviceMemory)
+	---@field vkCreateCommandPool fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, commandPool: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateDescriptorSetLayout fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, layout: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateDescriptorPool fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, pool: ffi.cdata*): vk.ffi.Result
+	---@field vkAllocateDescriptorSets fun(device: vk.ffi.Device, info: ffi.cdata*, descriptorSets: ffi.cdata*): vk.ffi.Result
+	---@field vkUpdateDescriptorSets fun(device: vk.ffi.Device, writeCount: number, writes: ffi.cdata*, copyCount: number, copies: ffi.cdata*?)
+	---@field vkAllocateCommandBuffers fun(device: vk.ffi.Device, info: ffi.cdata*, commandBuffers: ffi.cdata*): vk.ffi.Result
+	---@field vkBeginCommandBuffer fun(commandBuffer: vk.ffi.CommandBuffer, info: ffi.cdata*): vk.ffi.Result
+	---@field vkEndCommandBuffer fun(commandBuffer: vk.ffi.CommandBuffer): vk.ffi.Result
+	---@field vkCmdBeginRenderPass fun(commandBuffer: vk.ffi.CommandBuffer, info: ffi.cdata*, contents: vk.SubpassContents)
+	---@field vkCmdEndRenderPass fun(commandBuffer: vk.ffi.CommandBuffer)
+	---@field vkCmdBindPipeline fun(commandBuffer: vk.ffi.CommandBuffer, pipelineBindPoint: vk.PipelineBindPoint, pipeline: vk.ffi.Pipeline)
+	---@field vkCmdBindDescriptorSets fun(commandBuffer: vk.ffi.CommandBuffer, pipelineBindPoint: vk.PipelineBindPoint, layout: vk.ffi.PipelineLayout, firstSet: number, count: number, sets: ffi.cdata*, dynamicOffsetCount: number, dynamicOffsets: ffi.cdata*?)
+	---@field vkCmdDraw fun(commandBuffer: vk.ffi.CommandBuffer, vertexCount: number, instanceCount: number, firstVertex: number, firstInstance: number)
+	---@field vkCmdUpdateBuffer fun(commandBuffer: vk.ffi.CommandBuffer, dstBuffer: vk.ffi.Buffer, dstOffset: number, dataSize: number, pData: ffi.cdata*)
+	---@field vkCmdCopyBufferToImage fun(commandBuffer: vk.ffi.CommandBuffer, srcBuffer: vk.ffi.Buffer, dstImage: vk.ffi.Image, dstImageLayout: vk.ImageLayout, regionCount: number, pRegions: ffi.cdata*)
+	---@field vkQueueSubmit fun(queue: vk.ffi.Queue, submitCount: number, submits: ffi.cdata*, fence: number): vk.ffi.Result
+	---@field vkQueueWaitIdle fun(queue: vk.ffi.Queue): vk.ffi.Result
+	---@field vkGetDeviceQueue fun(device: vk.ffi.Device, queueFamilyIndex: number, queueIndex: number, queue: ffi.cdata*)
+	---@field vkCreateSemaphore fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, semaphore: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateFence fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, fence: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateSwapchainKHR fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, swapchain: ffi.cdata*): vk.ffi.Result
+	---@field vkGetSwapchainImagesKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, count: ffi.cdata*, images: ffi.cdata*?): vk.ffi.Result
+	---@field vkAcquireNextImageKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, timeout: number, semaphore: vk.ffi.Semaphore?, fence: vk.ffi.Fence?, imageIndex: ffi.cdata*): vk.ffi.Result
+	---@field vkQueuePresentKHR fun(queue: vk.ffi.Queue, info: ffi.cdata*): vk.ffi.Result
 
 	---@param handle vk.ffi.Device
 	function VKDevice.new(handle)
+		---@format disable-next
 		local v1_0Types = {
-			-- types go here
+			vkCreateBuffer = "VkResult(*)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*)",
+			vkDestroyBuffer = "void(*)(VkDevice, VkBuffer, const VkAllocationCallbacks*)",
+			vkCreateShaderModule = "VkResult(*)(VkDevice, const VkShaderModuleCreateInfo*, const VkAllocationCallbacks*, VkShaderModule*)",
+			vkCreatePipelineLayout = "VkResult(*)(VkDevice, const VkPipelineLayoutCreateInfo*, const VkAllocationCallbacks*, VkPipelineLayout*)",
+			vkCreateGraphicsPipelines = "VkResult(*)(VkDevice, uint64_t, uint32_t, const VkGraphicsPipelineCreateInfo*, const VkAllocationCallbacks*, VkPipeline*)",
+			vkCreateRenderPass = "VkResult(*)(VkDevice, const VkRenderPassCreateInfo*, const VkAllocationCallbacks*, VkRenderPass*)",
+			vkCreateFramebuffer = "VkResult(*)(VkDevice, const VkFramebufferCreateInfo*, const VkAllocationCallbacks*, VkFramebuffer*)",
+			vkGetBufferMemoryRequirements = "void(*)(VkDevice, VkBuffer, VkMemoryRequirements*)",
+			vkGetImageMemoryRequirements = "void(*)(VkDevice, VkImage, VkMemoryRequirements*)",
+			vkCreateImage = "VkResult(*)(VkDevice, const VkImageCreateInfo*, const VkAllocationCallbacks*, VkImage*)",
+			vkBindImageMemory = "VkResult(*)(VkDevice, VkImage, VkDeviceMemory, VkDeviceSize)",
+			vkAllocateMemory = "VkResult(*)(VkDevice, const VkMemoryAllocateInfo*, const VkAllocationCallbacks*, VkDeviceMemory*)",
+			vkBindBufferMemory = "VkResult(*)(VkDevice, VkBuffer, VkDeviceMemory, VkDeviceSize)",
+			vkMapMemory = "VkResult(*)(VkDevice, VkDeviceMemory, VkDeviceSize, VkDeviceSize, VkFlags, void**)",
+			vkUnmapMemory = "void(*)(VkDevice, VkDeviceMemory)",
+			vkCreateCommandPool = "VkResult(*)(VkDevice, const VkCommandPoolCreateInfo*, const VkAllocationCallbacks*, VkCommandPool*)",
+			vkCreateDescriptorSetLayout = "VkResult(*)(VkDevice, const VkDescriptorSetLayoutCreateInfo*, const VkAllocationCallbacks*, VkDescriptorSetLayout*)",
+			vkCreateDescriptorPool = "VkResult(*)(VkDevice, const VkDescriptorPoolCreateInfo*, const VkAllocationCallbacks*, VkDescriptorPool*)",
+			vkAllocateDescriptorSets = "VkResult(*)(VkDevice, const VkDescriptorSetAllocateInfo*, VkDescriptorSet*)",
+			vkUpdateDescriptorSets = "void(*)(VkDevice, uint32_t, const VkWriteDescriptorSet*, uint32_t, const void*)",
+			vkAllocateCommandBuffers = "VkResult(*)(VkDevice, const VkCommandBufferAllocateInfo*, VkCommandBuffer*)",
+			vkBeginCommandBuffer = "VkResult(*)(VkCommandBuffer, const VkCommandBufferBeginInfo*)",
+			vkEndCommandBuffer = "VkResult(*)(VkCommandBuffer)",
+			vkCmdBeginRenderPass = "void(*)(VkCommandBuffer, const VkRenderPassBeginInfo*, VkSubpassContents)",
+			vkCmdEndRenderPass = "void(*)(VkCommandBuffer)",
+			vkCmdBindPipeline = "void(*)(VkCommandBuffer, VkPipelineBindPoint, VkPipeline)",
+			vkCmdDraw = "void(*)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, uint32_t)",
+			vkCmdBindDescriptorSets = "void(*)(VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t, uint32_t, const VkDescriptorSet*, uint32_t, const uint32_t*)",
+			vkCmdCopyBufferToImage = "void(*)(VkCommandBuffer, VkBuffer, VkImage, VkImageLayout, uint32_t, const VkBufferImageCopy*)",
+			vkCmdUpdateBuffer = "void(*)(VkCommandBuffer, VkBuffer, VkDeviceSize, VkDeviceSize, const void*)",
+			vkQueueSubmit = "VkResult(*)(VkQueue, uint32_t, const VkSubmitInfo*, uint64_t)",
+			vkQueueWaitIdle = "VkResult(*)(VkQueue)",
+			vkGetDeviceQueue = "void(*)(VkDevice, uint32_t, uint32_t, VkQueue*)",
+			vkCreateSemaphore = "VkResult(*)(VkDevice, const VkSemaphoreCreateInfo*, const VkAllocationCallbacks*, VkSemaphore*)",
+			vkCreateFence = "VkResult(*)(VkDevice, const VkFenceCreateInfo*, const VkAllocationCallbacks*, VkFence*)",
+			vkCreateSwapchainKHR = "VkResult(*)(VkDevice, const VkSwapchainCreateInfoKHR*, const VkAllocationCallbacks*, VkSwapchainKHR*)",
+			vkGetSwapchainImagesKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint32_t*, VkImage*)",
+			vkAcquireNextImageKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)",
+			vkQueuePresentKHR = "VkResult(*)(VkQueue, const VkPresentInfoKHR*)",
 		}
 
 		---@type vk.Device.Fns

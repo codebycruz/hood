@@ -6,40 +6,40 @@
 -- TODO: Change all these to vk.ffi
 
 ---@class vk.ffi.Instance: number
----@class vk.Result: number
----@class vk.PhysicalDevice: ffi.cdata*
+---@class vk.ffi.Result: number
+---@class vk.ffi.PhysicalDevice: ffi.cdata*
 ---@class vk.ffi.Device: number
----@class vk.DeviceSize: number
----@class vk.Buffer: number
----@class vk.PipelineLayout: number
----@class vk.Pipeline: number
----@class vk.RenderPass: number
----@class vk.Framebuffer: number
----@class vk.ShaderModule: number
----@class vk.CommandPool: number
----@class vk.CommandBuffer: number
----@class vk.DescriptorSetLayout: number
----@class vk.DescriptorPool: number
----@class vk.DescriptorSet: number
----@class vk.Queue: number
----@class vk.Semaphore: number
----@class vk.Fence: number
----@class vk.Image: number
----@class vk.DeviceMemory: number
----@class vk.Sampler: number
----@class vk.ImageView: number
----@class vk.SwapchainKHR: number
----@class vk.SurfaceKHR: number
+---@class vk.ffi.DeviceSize: number
+---@class vk.ffi.Buffer: number
+---@class vk.ffi.PipelineLayout: number
+---@class vk.ffi.Pipeline: number
+---@class vk.ffi.RenderPass: number
+---@class vk.ffi.Framebuffer: number
+---@class vk.ffi.ShaderModule: number
+---@class vk.ffi.CommandPool: number
+---@class vk.ffi.CommandBuffer: number
+---@class vk.ffi.DescriptorSetLayout: number
+---@class vk.ffi.DescriptorPool: number
+---@class vk.ffi.DescriptorSet: number
+---@class vk.ffi.Queue: number
+---@class vk.ffi.Semaphore: number
+---@class vk.ffi.Fence: number
+---@class vk.ffi.Image: number
+---@class vk.ffi.DeviceMemory: number
+---@class vk.ffi.Sampler: number
+---@class vk.ffi.ImageView: number
+---@class vk.ffi.SwapchainKHR: number
+---@class vk.ffi.SurfaceKHR: number
 
 ---@class vk.ffi.MemoryRequirements: ffi.cdata*
----@field size vk.DeviceSize
----@field alignment vk.DeviceSize
+---@field size vk.ffi.DeviceSize
+---@field alignment vk.ffi.DeviceSize
 ---@field memoryTypeBits number
 
 ---@class vk.ffi.CreateImageInfo: vk.ffi.BaseStruct
 ---@field imageType vk.ImageType
 ---@field format vk.Format
----@field extent vk.Extent3D
+---@field extent vk.ffi.Extent3D
 ---@field mipLevels number
 ---@field arrayLayers number
 ---@field samples vk.SamplecountFlags
@@ -50,40 +50,40 @@
 ---@field pQueueFamilyIndices ffi.cdata*?
 ---@field initialLayout vk.ImageLayout
 
----@class vk.MemoryType: ffi.cdata*
+---@class vk.ffi.MemoryType: ffi.cdata*
 ---@field propertyFlags number
 ---@field heapIndex number
 
----@class vk.MemoryHeap: ffi.cdata*
+---@class vk.ffi.MemoryHeap: ffi.cdata*
 ---@field size number
 ---@field flags number
 
----@class vk.Extent2D: ffi.cdata*
+---@class vk.ffi.Extent2D: ffi.cdata*
 ---@field width number
 ---@field height number
 
----@class vk.Extent3D: ffi.cdata*
+---@class vk.ffi.Extent3D: ffi.cdata*
 ---@field width number
 ---@field height number
 ---@field depth number
 
----@class vk.PhysicalDeviceMemoryProperties: ffi.cdata*
+---@class vk.ffi.PhysicalDeviceMemoryProperties: ffi.cdata*
 ---@field memoryTypeCount number
 ---@field memoryTypes ffi.cdata*
 ---@field memoryHeapCount number
 ---@field memoryHeaps ffi.cdata*
 
----@class vk.QueueFamilyProperties: ffi.cdata*
+---@class vk.ffi.QueueFamilyProperties: ffi.cdata*
 ---@field queueFlags number
 ---@field queueCount number
 ---@field timestampValidBits number
----@field minImageTransferGranularity vk.Extent3D
+---@field minImageTransferGranularity vk.ffi.Extent3D
 
 ---@class vk.ffi.MemoryAllocateInfo: vk.ffi.BaseStruct
 ---@field allocationSize number
 ---@field memoryTypeIndex number
 
----@class vk.SurfaceCapabilitiesKHR: ffi.cdata*
+---@class vk.ffi.SurfaceCapabilitiesKHR: ffi.cdata*
 ---@field minImageCount number
 ---@field maxImageCount number
 ---@field currentExtent table
@@ -95,7 +95,7 @@
 ---@field supportedCompositeAlpha number
 ---@field supportedUsageFlags number
 
----@class vk.SurfaceFormatKHR: ffi.cdata*
+---@class vk.ffi.SurfaceFormatKHR: ffi.cdata*
 ---@field format number
 ---@field colorSpace number
 
@@ -142,8 +142,8 @@
 ---@field pDepthStencilState userdata?
 ---@field pColorBlendState userdata?
 ---@field pDynamicState userdata?
----@field layout vk.PipelineLayout
----@field renderPass vk.RenderPass
+---@field layout vk.ffi.PipelineLayout
+---@field renderPass vk.ffi.RenderPass
 ---@field subpass number?
 
 ---@class vk.ffi.RenderPassCreateInfo: vk.ffi.BaseStruct
@@ -155,7 +155,7 @@
 ---@field pDependencies userdata?
 
 ---@class vk.ffi.FramebufferCreateInfo: vk.ffi.BaseStruct
----@field renderPass vk.RenderPass
+---@field renderPass vk.ffi.RenderPass
 ---@field attachmentCount number?
 ---@field pAttachments userdata?
 ---@field width number
@@ -167,7 +167,7 @@
 ---@field queueFamilyIndex number
 
 ---@class vk.ffi.CommandBufferAllocateInfo: vk.ffi.BaseStruct
----@field commandPool vk.CommandPool
+---@field commandPool vk.ffi.CommandPool
 ---@field level number
 ---@field commandBufferCount number
 
@@ -182,7 +182,7 @@
 ---@field bindingCount number?
 ---@field pBindings ffi.cdata*?
 
----@class vk.DescriptorPoolSize: ffi.cdata*
+---@class vk.ffi.DescriptorPoolSize: ffi.cdata*
 ---@field type number
 ---@field descriptorCount number
 
@@ -192,22 +192,22 @@
 ---@field pPoolSizes ffi.cdata*?
 
 ---@class vk.ffi.DescriptorSetAllocateInfo: vk.ffi.BaseStruct
----@field descriptorPool vk.DescriptorPool
+---@field descriptorPool vk.ffi.DescriptorPool
 ---@field descriptorSetCount number
 ---@field pSetLayouts ffi.cdata*
 
----@class vk.DescriptorBufferInfo: ffi.cdata*
----@field buffer vk.Buffer
+---@class vk.ffi.DescriptorBufferInfo: ffi.cdata*
+---@field buffer vk.ffi.Buffer
 ---@field offset number
 ---@field range number
 
----@class vk.DescriptorImageInfo: ffi.cdata*
+---@class vk.ffi.DescriptorImageInfo: ffi.cdata*
 ---@field sampler number
 ---@field imageView number
 ---@field imageLayout number
 
 ---@class vk.ffi.WriteDescriptorSet: vk.ffi.BaseStruct
----@field dstSet vk.DescriptorSet
+---@field dstSet vk.ffi.DescriptorSet
 ---@field dstBinding number
 ---@field dstArrayElement number
 ---@field descriptorCount number
@@ -217,7 +217,7 @@
 ---@field pTexelBufferView ffi.cdata*?
 
 ---@class vk.ffi.SwapchainCreateInfoKHR: vk.ffi.BaseStruct
----@field surface vk.SurfaceKHR
+---@field surface vk.ffi.SurfaceKHR
 ---@field minImageCount number
 ---@field imageFormat number
 ---@field imageColorSpace number
@@ -231,14 +231,14 @@
 ---@field compositeAlpha number
 ---@field presentMode number
 ---@field clipped number
----@field oldSwapchain vk.SwapchainKHR
+---@field oldSwapchain vk.ffi.SwapchainKHR
 
 ---@class vk.ffi.CommandBufferBeginInfo: vk.ffi.BaseStruct
 ---@field pInheritanceInfo userdata?
 
 ---@class vk.ffi.RenderPassBeginInfo: vk.ffi.BaseStruct
----@field renderPass vk.RenderPass
----@field framebuffer vk.Framebuffer
+---@field renderPass vk.ffi.RenderPass
+---@field framebuffer vk.ffi.Framebuffer
 ---@field renderArea table
 ---@field clearValueCount number?
 ---@field pClearValues userdata?
@@ -264,7 +264,7 @@
 ---@field signalSemaphoreCount number?
 ---@field pSignalSemaphores ffi.cdata*?
 
----@class vk.PhysicalDeviceProperties: ffi.cdata*
+---@class vk.ffi.PhysicalDeviceProperties: ffi.cdata*
 ---@field apiVersion number
 ---@field driverVersion number
 ---@field vendorID number
