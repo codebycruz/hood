@@ -29,6 +29,15 @@ function VKBuffer.new(device, descriptor)
 	---@diagnostic disable-next-line: assign-type-mismatch: vkUsage is checked above
 	local handle = device.handle:createBuffer({ size = descriptor.size, usage = vkUsage })
 
+	-- Allocate and attach memory
+	local requirements = device.handle:getBufferMemoryRequirements(handle)
+	local memory = device.handle:allocateMemory({
+		allocationSize = requirements.size,
+		-- TODO: This shouldn't be hardcoded to 0.
+		memoryTypeIndex = 0
+	})
+	device.handle:bindBufferMemory(handle, memory, 0)
+
 	return setmetatable({ device = device, handle = handle, descriptor = descriptor }, VKBuffer)
 end
 
