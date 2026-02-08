@@ -3,10 +3,12 @@
 ---@field pNext userdata?
 ---@field flags number?
 
----@class vk.Instance: number
+-- TODO: Change all these to vk.ffi
+
+---@class vk.ffi.Instance: number
 ---@class vk.Result: number
 ---@class vk.PhysicalDevice: ffi.cdata*
----@class vk.Device: number
+---@class vk.ffi.Device: number
 ---@class vk.DeviceSize: number
 ---@class vk.Buffer: number
 ---@class vk.PipelineLayout: number
@@ -29,7 +31,7 @@
 ---@class vk.SwapchainKHR: number
 ---@class vk.SurfaceKHR: number
 
----@class vk.MemoryRequirements: ffi.cdata*
+---@class vk.ffi.MemoryRequirements: ffi.cdata*
 ---@field size vk.DeviceSize
 ---@field alignment vk.DeviceSize
 ---@field memoryTypeBits number

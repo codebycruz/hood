@@ -1,65 +1,17 @@
 local ffi = require("ffi")
 
-ffi.cdef([[ffidefs.h]])
+ffi.cdef([[#embed "ffi/ffidefs.h"]])
 
-local vkGlobal = {}
+local vkEnums = require("hood-vulkan.ffi.enums")
 
----@enum vk.StructureType
-vkGlobal.StructureType = {
-	APPLICATION_INFO = 0,
-	INSTANCE_CREATE_INFO = 1,
-	DEVICE_QUEUE_CREATE_INFO = 2,
-	DEVICE_CREATE_INFO = 3,
-	SUBMIT_INFO = 4,
-	MEMORY_ALLOCATE_INFO = 5,
-	MAPPED_MEMORY_RANGE = 6,
-	BIND_SPARSE_INFO = 7,
-	FENCE_CREATE_INFO = 8,
-	SEMAPHORE_CREATE_INFO = 9,
-	EVENT_CREATE_INFO = 10,
-	QUERY_POOL_CREATE_INFO = 11,
-	BUFFER_CREATE_INFO = 12,
-	BUFFER_VIEW_CREATE_INFO = 13,
-	IMAGE_CREATE_INFO = 14,
-	IMAGE_VIEW_CREATE_INFO = 15,
-	SHADER_MODULE_CREATE_INFO = 16,
-	PIPELINE_CACHE_CREATE_INFO = 17,
-	PIPELINE_SHADER_STAGE_CREATE_INFO = 18,
-	PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO = 19,
-	PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO = 20,
-	PIPELINE_TESSELLATION_STATE_CREATE_INFO = 21,
-	PIPELINE_VIEWPORT_STATE_CREATE_INFO = 22,
-	PIPELINE_RASTERIZATION_STATE_CREATE_INFO = 23,
-	PIPELINE_MULTISAMPLE_STATE_CREATE_INFO = 24,
-	PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO = 25,
-	PIPELINE_COLOR_BLEND_STATE_CREATE_INFO = 26,
-	PIPELINE_DYNAMIC_STATE_CREATE_INFO = 27,
-	GRAPHICS_PIPELINE_CREATE_INFO = 28,
-	COMPUTE_PIPELINE_CREATE_INFO = 29,
-	PIPELINE_LAYOUT_CREATE_INFO = 30,
-	SAMPLER_CREATE_INFO = 31,
-	DESCRIPTOR_SET_LAYOUT_CREATE_INFO = 32,
-	DESCRIPTOR_POOL_CREATE_INFO = 33,
-	DESCRIPTOR_SET_ALLOCATE_INFO = 34,
-	WRITE_DESCRIPTOR_SET = 35,
-	COPY_DESCRIPTOR_SET = 36,
-	FRAMEBUFFER_CREATE_INFO = 37,
-	RENDER_PASS_CREATE_INFO = 38,
-	COMMAND_POOL_CREATE_INFO = 39,
-	COMMAND_BUFFER_ALLOCATE_INFO = 40,
-	COMMAND_BUFFER_INHERITANCE_INFO = 41,
-	COMMAND_BUFFER_BEGIN_INFO = 42,
-	RENDER_PASS_BEGIN_INFO = 43,
-	BUFFER_MEMORY_BARRIER = 44,
-	IMAGE_MEMORY_BARRIER = 45,
-	MEMORY_BARRIER = 46,
-	LOADER_INSTANCE_CREATE_INFO = 47,
-	LOADER_DEVICE_CREATE_INFO = 48,
+---@class vk: vk.RawEnums
+local vk = {}
+for k, v in pairs(vkEnums) do
+	vk[k] = v
+end
 
-	-- VK_KHR_swapchain
-	SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
-	PRESENT_INFO_KHR = 1000001001,
-}
+local VKInstance = require("hood-vulkan.instance")(vk)
+local VKDevice = require("hood-vulkan.device")(vk)
 
 do
 	local C = ffi.load("vulkan.so.1")
@@ -67,22 +19,22 @@ do
 	---@param info vk.ffi.InstanceCreateInfo
 	---@param allocator ffi.cdata*?
 	---@return vk.Instance
-	function vkGlobal.createInstance(info, allocator)
+	function vk.createInstance(info, allocator)
 		local instance = ffi.new("VkInstance[1]")
 		local info = ffi.new("VkInstanceCreateInfo", info)
-		info.sType = vkGlobal.StructureType.INSTANCE_CREATE_INFO
+		info.sType = vkEnums.StructureType.INSTANCE_CREATE_INFO
 
 		local result = C.vkCreateInstance(info, allocator, instance)
 		if result ~= 0 then
 			error("Failed to create Vulkan instance, error code: " .. tostring(result))
 		end
 
-		return instance[0]
+		return VKInstance.new(instance[0])
 	end
 
 	---@param instance vk.Instance
 	---@return vk.PhysicalDevice[]
-	function vkGlobal.enumeratePhysicalDevices(instance)
+	function vk.enumeratePhysicalDevices(instance)
 		local deviceCount = ffi.new("uint32_t[1]", 0)
 		local result = C.vkEnumeratePhysicalDevices(instance, deviceCount, nil)
 		if result ~= 0 then
@@ -104,7 +56,7 @@ do
 	end
 
 	---@param physicalDevice vk.PhysicalDevice
-	function vkGlobal.getPhysicalDeviceProperties(physicalDevice)
+	function vk.getPhysicalDeviceProperties(physicalDevice)
 		local properties = ffi.new("VkPhysicalDeviceProperties")
 		C.vkGetPhysicalDeviceProperties(physicalDevice, properties)
 		return properties --[[@as vk.PhysicalDeviceProperties]]
@@ -112,7 +64,7 @@ do
 
 	---@param physicalDevice vk.PhysicalDevice
 	---@return vk.PhysicalDeviceMemoryProperties
-	function vkGlobal.getPhysicalDeviceMemoryProperties(physicalDevice)
+	function vk.getPhysicalDeviceMemoryProperties(physicalDevice)
 		local memProperties = ffi.new("VkPhysicalDeviceMemoryProperties")
 		C.vkGetPhysicalDeviceMemoryProperties(physicalDevice, memProperties)
 		return memProperties --[[@as vk.PhysicalDeviceMemoryProperties]]
@@ -120,7 +72,7 @@ do
 
 	---@param physicalDevice vk.PhysicalDevice
 	---@return vk.QueueFamilyProperties[]
-	function vkGlobal.getPhysicalDeviceQueueFamilyProperties(physicalDevice)
+	function vk.getPhysicalDeviceQueueFamilyProperties(physicalDevice)
 		local count = ffi.new("uint32_t[1]")
 		C.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, count, nil)
 
@@ -137,7 +89,7 @@ do
 	---@param physicalDevice vk.PhysicalDevice
 	---@param surface vk.SurfaceKHR
 	---@return vk.SurfaceCapabilitiesKHR
-	function vkGlobal.getPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface)
+	function vk.getPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface)
 		local capabilities = ffi.new("VkSurfaceCapabilitiesKHR")
 		local result = C.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, capabilities)
 		if result ~= 0 then
@@ -149,7 +101,7 @@ do
 	---@param physicalDevice vk.PhysicalDevice
 	---@param surface vk.SurfaceKHR
 	---@return vk.SurfaceFormatKHR[]
-	function vkGlobal.getPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface)
+	function vk.getPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface)
 		local count = ffi.new("uint32_t[1]")
 		local result = C.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, count, nil)
 		if result ~= 0 then
@@ -172,7 +124,7 @@ do
 	---@param physicalDevice vk.PhysicalDevice
 	---@param surface vk.SurfaceKHR
 	---@return number[]
-	function vkGlobal.getPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface)
+	function vk.getPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface)
 		local count = ffi.new("uint32_t[1]")
 		local result = C.vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, count, nil)
 		if result ~= 0 then
@@ -192,43 +144,12 @@ do
 		return modeTable
 	end
 
-	vkGlobal.getInstanceProcAddr = C.vkGetInstanceProcAddr
-	vkGlobal.getDeviceProcAddr = C.vkGetDeviceProcAddr
+	---@type fun(instance: vk.ffi.Instance, name: string): ffi.cdata*
+	vk.getInstanceProcAddr = C.vkGetInstanceProcAddr
+
+	---@type fun(device: vk.ffi.Device, name: string): ffi.cdata*
+	vk.getDeviceProcAddr = C.vkGetDeviceProcAddr
 end
-
-local globalInstance = vkGlobal.createInstance({})
-local globalPhysicalDevice = vkGlobal.enumeratePhysicalDevices(globalInstance)[1]
-
-local vkInstance = {}
-do
-	local types = {
-		vkCreateDevice = "VkDevice(*)(VkPhysicalDevice, const VkDeviceCreateInfo*, const void*, VkDevice*)",
-	}
-
-	local C = {}
-	for name, funcType in pairs(types) do
-		C[name] = ffi.cast(funcType, vkGlobal.getInstanceProcAddr(globalInstance, name))
-	end
-
-	---@param physicalDevice vk.PhysicalDevice
-	---@param info vk.ffi.DeviceCreateInfo?
-	---@param allocator ffi.cdata*?
-	---@return vk.Device
-	function vkInstance.createDevice(physicalDevice, info, allocator)
-		local device = ffi.new("VkDevice[1]")
-		local info = ffi.new("VkDeviceCreateInfo", info or {})
-		info.sType = vkGlobal.StructureType.DEVICE_CREATE_INFO
-
-		local result = C.vkCreateDevice(physicalDevice, info, allocator, device)
-		if result ~= 0 then
-			error("Failed to create Vulkan device, error code: " .. tostring(result))
-		end
-
-		return device[0]
-	end
-end
-
-local globalDevice = vkInstance.createDevice(globalPhysicalDevice, {})
 
 local vkDevice = {}
 do
@@ -276,102 +197,12 @@ do
 	}
 
 	for name, funcType in pairs(types) do
-		vkDevice[name] = ffi.cast(funcType, vkGlobal.getDeviceProcAddr(globalDevice, name))
+		vkDevice[name] = ffi.cast(funcType, vk.getDeviceProcAddr(handle, name))
 	end
 end
 
-local vk = {}
-
 -- Globals
 do
-	vk.StructureType = vkGlobal.StructureType
-	vk.getPhysicalDeviceMemoryProperties = vkGlobal.getPhysicalDeviceMemoryProperties
-	vk.getPhysicalDeviceQueueFamilyProperties = vkGlobal.getPhysicalDeviceQueueFamilyProperties
-	vk.getPhysicalDeviceSurfaceCapabilitiesKHR = vkGlobal.getPhysicalDeviceSurfaceCapabilitiesKHR
-	vk.getPhysicalDeviceSurfaceFormatsKHR = vkGlobal.getPhysicalDeviceSurfaceFormatsKHR
-	vk.getPhysicalDeviceSurfacePresentModesKHR = vkGlobal.getPhysicalDeviceSurfacePresentModesKHR
-
-	---@enum vk.PhysicalDeviceType
-	vk.PhysicalDeviceType = {
-		OTHER = 0,
-		INTEGRATED_GPU = 1,
-		DISCRETE_GPU = 2,
-		VIRTUAL_GPU = 3,
-		CPU = 4,
-	}
-
-	---@enum vk.ImageLayout
-	vk.ImageLayout = {
-		UNDEFINED = 0,
-		GENERAL = 1,
-		COLOR_ATTACHMENT_OPTIMAL = 2,
-		DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-		DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
-		SHADER_READ_ONLY_OPTIMAL = 5,
-		TRANSFER_SRC_OPTIMAL = 6,
-		TRANSFER_DST_OPTIMAL = 7,
-		PREINITIALIZED = 8,
-	}
-
-	---@enum vk.ImageType
-	vk.ImageType = {
-		TYPE_1D = 0,
-		TYPE_2D = 1,
-		TYPE_3D = 2,
-	}
-
-	---@enum vk.BufferUsage
-	vk.BufferUsage = {
-		TRANSFER_SRC = 0x00000001,
-		TRANSFER_DST = 0x00000002,
-		UNIFORM_TEXEL_BUFFER = 0x00000004,
-		STORAGE_TEXEL_BUFFER = 0x00000008,
-		UNIFORM_BUFFER = 0x00000010,
-		STORAGE_BUFFER = 0x00000020,
-		INDEX_BUFFER = 0x00000040,
-		VERTEX_BUFFER = 0x00000080,
-		INDIRECT_BUFFER = 0x00000100,
-	}
-
-	---@enum vk.SharingMode
-	vk.SharingMode = {
-		EXCLUSIVE = 0,
-		CONCURRENT = 1,
-	}
-
-	---@enum vk.PipelineBindPoint
-	vk.PipelineBindPoint = {
-		GRAPHICS = 0,
-		COMPUTE = 1,
-	}
-
-	---@enum vk.SubpassContents
-	vk.SubpassContents = {
-		INLINE = 0,
-		SECONDARY_COMMAND_BUFFERS = 1,
-	}
-
-	---@enum vk.CommandBufferLevel
-	vk.CommandBufferLevel = {
-		PRIMARY = 0,
-		SECONDARY = 1,
-	}
-
-	---@enum vk.QueueFlagBits
-	vk.QueueFlagBits = {
-		GRAPHICS = 0x00000001,
-		COMPUTE = 0x00000002,
-		TRANSFER = 0x00000004,
-	}
-
-	---@enum vk.CommandPoolCreateFlagBits
-	vk.CommandPoolCreateFlagBits = {
-		TRANSIENT = 0x00000001,
-		RESET_COMMAND_BUFFER = 0x00000002,
-	}
-
-	vk.getPhysicalDeviceProperties = vkGlobal.getPhysicalDeviceProperties
-
 	function vk.newRenderPassBeginInfo()
 		local info = ffi.new("VkRenderPassBeginInfo")
 		info.sType = vk.StructureType.RENDER_PASS_BEGIN_INFO
@@ -381,11 +212,6 @@ end
 
 -- Instance
 do
-	function vk.enumeratePhysicalDevices()
-		return vkGlobal.enumeratePhysicalDevices(globalInstance)
-	end
-
-	vk.createInstance = vkGlobal.createInstance
 	vk.createDevice = vkInstance.createDevice
 end
 
@@ -530,7 +356,7 @@ do
 
 	---@param device vk.Device
 	---@param buffer vk.Buffer
-	---@return vk.MemoryRequirements
+	---@return vk.ffi.MemoryRequirements
 	function vk.getBufferMemoryRequirements(device, buffer)
 		local memRequirements = ffi.new("VkMemoryRequirements")
 		vkDevice.vkGetBufferMemoryRequirements(device, buffer, memRequirements)
@@ -539,7 +365,7 @@ do
 
 	---@param device vk.Device
 	---@param image vk.Image
-	---@return vk.MemoryRequirements
+	---@return vk.ffi.MemoryRequirements
 	function vk.getImageMemoryRequirements(device, image)
 		local memRequirements = ffi.new("VkMemoryRequirements")
 		vkDevice.vkGetImageMemoryRequirements(device, image, memRequirements)
