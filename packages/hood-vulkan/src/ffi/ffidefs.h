@@ -1,14 +1,14 @@
 typedef unsigned long long uint64_t;
-typedef unsigned long uint32_t;
+typedef unsigned int uint32_t;
 
 typedef long long int64_t;
-typedef long int32_t;
+typedef int int32_t;
 
 typedef uint64_t size_t;
 typedef unsigned char uint8_t;
 
-typedef uint64_t VkInstance;
-typedef uint64_t VkDevice;
+typedef void *VkInstance;
+typedef void *VkDevice;
 typedef int32_t VkResult;
 typedef int32_t VkStructureType;
 typedef uint32_t VkFlags;
@@ -29,8 +29,8 @@ typedef uint64_t VkPipeline;
 typedef uint64_t VkRenderPass;
 typedef uint64_t VkFramebuffer;
 typedef uint64_t VkCommandPool;
-typedef uint64_t VkCommandBuffer;
-typedef uint64_t VkQueue;
+typedef void *VkCommandBuffer;
+typedef void *VkQueue;
 typedef uint64_t VkSemaphore;
 typedef uint64_t VkFence;
 typedef uint64_t VkImage;

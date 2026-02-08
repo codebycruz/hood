@@ -6,6 +6,9 @@ VULKAN = os.getenv("VULKAN") == "1"
 
 local hood = {}
 
+---@alias hood.InstanceBackend "vulkan" | "opengl"
+---@alias hood.InstanceFlag "validate"
+
 --- No. You aren't getting a full implementation of this anytime soon.
 ---@enum hood.BlendState
 hood.BlendState = {

@@ -3,8 +3,6 @@
 ---@field pNext userdata?
 ---@field flags number?
 
--- TODO: Change all these to vk.ffi
-
 ---@class vk.ffi.Instance: number
 ---@class vk.ffi.Result: number
 ---@class vk.ffi.PhysicalDevice: ffi.cdata*
@@ -99,8 +97,15 @@
 ---@field format number
 ---@field colorSpace number
 
+---@class vk.ffi.ApplicationInfo: vk.ffi.BaseStruct
+---@field pApplicationName ffi.cdata*?
+---@field applicationVersion number
+---@field pEngineName ffi.cdata*?
+---@field engineVersion number
+---@field apiVersion vk.ApiVersion
+
 ---@class vk.ffi.InstanceCreateInfo: vk.ffi.BaseStruct
----@field pApplicationInfo ffi.cdata*?
+---@field pApplicationInfo vk.ffi.ApplicationInfo?
 ---@field enabledLayerCount number?
 ---@field ppEnabledLayerNames ffi.cdata*?
 ---@field enabledExtensionCount number?

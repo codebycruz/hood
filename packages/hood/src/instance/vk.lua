@@ -8,8 +8,29 @@ local VKSurface = require("hood.surface.vk")
 local VKInstance = {}
 VKInstance.__index = VKInstance
 
-function VKInstance.new()
-	return setmetatable({ handle = vk.createInstance({}) }, VKInstance)
+---@param descriptor hood.InstanceDescriptor
+function VKInstance.new(descriptor)
+	local hasValidate = false
+	for _, flag in ipairs(descriptor.flags or {}) do
+		if flag == "validate" then
+			hasValidate = true
+			break
+		end
+	end
+
+	local handle = vk.createInstance({
+		applicationInfo = {
+			name = "Hood",
+			version = 1,
+			engineName = "Hood",
+			engineVersion = 1,
+			apiVersion = vk.ApiVersion.V1_0
+		},
+		enabledLayerNames = hasValidate and { "VK_LAYER_KHRONOS_validation" },
+		enabledExtensionNames = {}
+	})
+
+	return setmetatable({ handle = handle }, VKInstance)
 end
 
 ---@param config hood.AdapterConfig

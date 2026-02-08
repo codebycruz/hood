@@ -1,6 +1,13 @@
 ---@class vk.RawEnums
 local vk = {}
 
+---@enum vk.ApiVersion
+vk.ApiVersion = {
+	V1_0 = 0x00400000,
+	V1_1 = 0x00401000,
+	V1_2 = 0x00402000,
+}
+
 ---@enum vk.PhysicalDeviceType
 vk.PhysicalDeviceType = {
 	OTHER = 0,

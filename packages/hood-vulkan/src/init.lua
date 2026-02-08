@@ -15,15 +15,56 @@ local VKInstance = require("hood-vulkan.instance")(vk)
 do
 	local C = ffi.load("vulkan.so.1")
 
-	---@param info vk.ffi.InstanceCreateInfo
+	---@class vk.ApplicationInfo
+	---@field name string
+	---@field version number
+	---@field engineName string
+	---@field engineVersion number
+	---@field apiVersion vk.ApiVersion
+
+	---@class vk.InstanceCreateInfo
+	---@field applicationInfo vk.ApplicationInfo
+	---@field enabledLayerNames string[]
+	---@field enabledExtensionNames string[]
+
+	---@param info vk.InstanceCreateInfo
 	---@param allocator ffi.cdata*?
 	---@return vk.Instance
 	function vk.createInstance(info, allocator)
 		local instance = ffi.new("VkInstance[1]")
-		local info = ffi.new("VkInstanceCreateInfo", info)
-		info.sType = vkEnums.StructureType.INSTANCE_CREATE_INFO
 
-		local result = C.vkCreateInstance(info, allocator, instance)
+		local layerCount = info.enabledLayerNames and #info.enabledLayerNames or 0
+		local layerNames = ffi.new("const char*[?]", math.max(layerCount, 1))
+		for i = 1, layerCount do
+			layerNames[i - 1] = ffi.cast("const char*", info.enabledLayerNames[i])
+		end
+
+		local extCount = info.enabledExtensionNames and #info.enabledExtensionNames or 0
+		local extNames = ffi.new("const char*[?]", math.max(extCount, 1))
+		for i = 1, extCount do
+			extNames[i - 1] = ffi.cast("const char*", info.enabledExtensionNames[i])
+		end
+
+		local appInfo = ffi.new("VkApplicationInfo", {
+			sType = vkEnums.StructureType.APPLICATION_INFO,
+			pApplicationName = info.applicationInfo.name,
+			applicationVersion = info.applicationInfo.version,
+			pEngineName = info.applicationInfo.engineName,
+			engineVersion = info.applicationInfo.engineVersion,
+			apiVersion = info.applicationInfo.apiVersion,
+		})
+
+		local createInfo = ffi.new("VkInstanceCreateInfo", {
+			sType = vkEnums.StructureType.INSTANCE_CREATE_INFO,
+			flags = 0,
+			pApplicationInfo = appInfo,
+			enabledLayerCount = layerCount,
+			ppEnabledLayerNames = layerNames,
+			enabledExtensionCount = extCount,
+			ppEnabledExtensionNames = extNames,
+		})
+
+		local result = C.vkCreateInstance(createInfo, allocator, instance)
 		if result ~= 0 then
 			error("Failed to create Vulkan instance, error code: " .. tostring(result))
 		end

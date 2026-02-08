@@ -14,7 +14,7 @@ eventLoop:register(window)
 window:setTitle("Testing - Triangle")
 
 -- Create hood instance, adapter, and device
-local instance = Instance.new()
+local instance = Instance.new({ backend = "vulkan", flags = { "validate" } })
 local adapter = instance:requestAdapter({ powerPreference = "high-performance" })
 local device = adapter:requestDevice()
 

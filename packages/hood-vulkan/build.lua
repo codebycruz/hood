@@ -10,8 +10,17 @@ end
 
 local init = read(outDir .. separator .. "init.lua")
 
+local escapes = {
+	["\\"] = "\\\\",
+	["\""] = "\\\"",
+	["\n"] = "\\n",
+	["\r"] = "\\r",
+	["\t"] = "\\t"
+}
+
 local preprocessed = string.gsub(init, "%[%[#embed \"([^\"]+)\"%]%]", function(filename)
-	return string.format("%q", read(outDir .. separator .. filename))
+	local content = read(outDir .. separator .. filename)
+	return '"' .. (content:gsub("[\\\"\n\r\t]", escapes)) .. '"'
 end)
 
 local outFile = io.open(outDir .. separator .. "init.lua", "w")
