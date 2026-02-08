@@ -42,11 +42,11 @@ function VKBuffer.new(device, descriptor)
 end
 
 function VKBuffer:destroy()
-	self.device:destroyBuffer(self.handle)
+	self.device.handle:destroyBuffer(self.handle)
 end
 
 function VKBuffer:__tostring()
-	return "VKBuffer(" .. tostring(self.buffer) .. ")"
+	return "VKBuffer(" .. tostring(self.handle) .. ")"
 end
 
 return VKBuffer
