@@ -12,6 +12,7 @@ VKCommandEncoder.__index = VKCommandEncoder
 ---@return hood.vk.CommandEncoder
 function VKCommandEncoder.new(device)
 	local buffer = VKCommandBuffer.new(device)
+	device.handle:beginCommandBuffer(buffer.handle)
 	return setmetatable({ device = device, buffer = buffer }, VKCommandEncoder)
 end
 
@@ -42,6 +43,7 @@ function VKCommandEncoder:writeBuffer(buffer, size, data, offset)
 end
 
 function VKCommandEncoder:finish()
+	self.device.handle:endCommandBuffer(self.buffer.handle)
 	return self.buffer
 end
 
