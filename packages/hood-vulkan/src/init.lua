@@ -5,7 +5,6 @@ ffi.cdef([[#embed "ffi/ffidefs.h"]])
 local vkEnums = require("hood-vulkan.ffi.enums")
 
 ---@class vk: vk.RawEnums
----@field SUBPASS_EXTERNAL number
 local vk = {}
 for k, v in pairs(vkEnums) do
 	vk[k] = v

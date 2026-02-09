@@ -149,7 +149,6 @@ return function(vk)
 		for i = 1, count do
 			local info = infos[i]
 
-			-- Shader stages
 			local stageCount = #info.stages
 			local stages = ffi.new("VkPipelineShaderStageCreateInfo[?]", stageCount)
 			for j, stage in ipairs(info.stages) do
@@ -159,12 +158,11 @@ return function(vk)
 				stages[j - 1].pName = stage.name or "main"
 			end
 
-			-- Vertex input state
+			---@type vk.ffi.PipelineVertexInputStateCreateInfo?
 			local vertexInputState = nil
 			if info.vertexInputState then
-				local vis = info.vertexInputState
-				local bindings = vis.bindings or {}
-				local attributes = vis.attributes or {}
+				local bindings = info.vertexInputState.bindings or {}
+				local attributes = info.vertexInputState.attributes or {}
 
 				local bindingArray = ffi.new("VkVertexInputBindingDescription[?]", math.max(#bindings, 1))
 				for j, b in ipairs(bindings) do
@@ -190,7 +188,7 @@ return function(vk)
 				})
 			end
 
-			-- Input assembly state
+			---@type vk.ffi.PipelineInputAssemblyStateCreateInfo?
 			local inputAssemblyState = nil
 			if info.inputAssemblyState then
 				inputAssemblyState = ffi.new("VkPipelineInputAssemblyStateCreateInfo", {
@@ -200,7 +198,7 @@ return function(vk)
 				})
 			end
 
-			-- Viewport state
+			---@type vk.ffi.PipelineViewportStateCreateInfo?
 			local viewportState = nil
 			if info.viewportState then
 				viewportState = ffi.new("VkPipelineViewportStateCreateInfo", {
@@ -210,10 +208,10 @@ return function(vk)
 				})
 			end
 
-			-- Rasterization state
+			---@type vk.ffi.PipelineRasterizationStateCreateInfo?
 			local rasterizationState = nil
 			if info.rasterizationState then
-				local rs = info.rasterizationState
+				local rs = info.rasterizationState ---@cast rs -nil
 				rasterizationState = ffi.new("VkPipelineRasterizationStateCreateInfo", {
 					sType = vk.StructureType.PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 					depthClampEnable = rs.depthClampEnable and 1 or 0,
@@ -229,7 +227,7 @@ return function(vk)
 				})
 			end
 
-			-- Multisample state
+			---@type vk.ffi.PipelineMultisampleStateCreateInfo?
 			local multisampleState = nil
 			if info.multisampleState then
 				multisampleState = ffi.new("VkPipelineMultisampleStateCreateInfo", {
@@ -240,10 +238,10 @@ return function(vk)
 				})
 			end
 
-			-- Depth stencil state
+			---@type vk.ffi.PipelineDepthStencilStateCreateInfo?
 			local depthStencilState = nil
 			if info.depthStencilState then
-				local ds = info.depthStencilState
+				local ds = info.depthStencilState ---@cast ds -nil
 				depthStencilState = ffi.new("VkPipelineDepthStencilStateCreateInfo", {
 					sType = vk.StructureType.PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
 					depthTestEnable = ds.depthTestEnable and 1 or 0,
@@ -252,10 +250,10 @@ return function(vk)
 				})
 			end
 
-			-- Color blend state
+			---@type vk.ffi.PipelineColorBlendStateCreateInfo?
 			local colorBlendState = nil
 			if info.colorBlendState then
-				local cb = info.colorBlendState
+				local cb = info.colorBlendState ---@cast cb -nil
 				local attachments = cb.attachments or {}
 				local attachmentArray = ffi.new("VkPipelineColorBlendAttachmentState[?]", math.max(#attachments, 1))
 				for j, att in ipairs(attachments) do
@@ -278,7 +276,7 @@ return function(vk)
 				})
 			end
 
-			-- Dynamic state
+			---@type vk.ffi.PipelineDynamicStateCreateInfo?
 			local dynamicState = nil
 			if info.dynamicState then
 				local ds = info.dynamicState.dynamicStates
@@ -309,11 +307,13 @@ return function(vk)
 		end
 
 		local pipelines = ffi.new("VkPipeline[?]", count)
-		local result = self.v1_0.vkCreateGraphicsPipelines(self.handle, pipelineCache or 0, count, infoArray, allocator,
+		local result = self.v1_0.vkCreateGraphicsPipelines(self.handle, pipelineCache or vk.NULL, count, infoArray,
+			allocator,
 			pipelines)
 		if result ~= 0 then
 			error("Failed to create Vulkan graphics pipelines, error code: " .. tostring(result))
 		end
+
 		local pipelineList = {}
 		for i = 0, count - 1 do
 			pipelineList[i + 1] = pipelines[i]
