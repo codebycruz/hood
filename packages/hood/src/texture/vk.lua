@@ -76,3 +76,7 @@ function VKTexture.new(device, descriptor)
 
 	return setmetatable({ handle = handle }, VKTexture)
 end
+
+function VKTexture.fromRaw(device, handle)
+	return setmetatable({ handle = handle }, VKTexture)
+end
