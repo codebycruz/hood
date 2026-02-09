@@ -31,7 +31,7 @@ function VKCommandEncoder:beginRendering(descriptor)
 		-- cachedDescriptors[descriptor] = vkDescriptor
 	end
 
-	vk.cmdBeginRenderPass(self.buffer.handle, descriptor.renderPassBeginInfo, vk.SubpassContents.INLINE)
+	self.device.handle:cmdBeginRenderPass(self.buffer.handle, descriptor.renderPassBeginInfo, vk.SubpassContents.INLINE)
 end
 
 ---@param buffer hood.vk.Buffer
