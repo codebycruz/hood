@@ -1,3 +1,4 @@
+---@type string
 local dirName = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
 
 ---@param stage "vert" | "frag"
@@ -12,7 +13,29 @@ local function glslToSpirv(stage, glslPath, outputPath)
 	end
 end
 
+---@param path string
+local function exists(path)
+	local handle = io.open(path, "r")
+	if handle then
+		handle:close()
+		return true
+	end
+
+	return false
+end
+
 if os.getenv("VULKAN") then
-	glslToSpirv("vert", dirName .. "shaders/triangle.vert.glsl", dirName .. "shaders/triangle.vert.spv")
-	glslToSpirv("frag", dirName .. "shaders/triangle.frag.glsl", dirName .. "shaders/triangle.frag.spv")
+	local inputVertex = dirName .. "shaders/triangle.vert.glsl"
+	local outputVertex = dirName .. "shaders/triangle.vert.spv"
+	if not exists(outputVertex) then
+		print("SPIR-V vertex shader not found, compiling GLSL to SPIR-V...")
+		glslToSpirv("vert", inputVertex, outputVertex)
+	end
+
+	local inputFragment = dirName .. "shaders/triangle.frag.glsl"
+	local outputFragment = dirName .. "shaders/triangle.frag.spv"
+	if not exists(outputFragment) then
+		print("SPIR-V fragment shader not found, compiling GLSL to SPIR-V...")
+		glslToSpirv("frag", inputFragment, outputFragment)
+	end
 end

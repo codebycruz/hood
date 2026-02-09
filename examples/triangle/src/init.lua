@@ -9,6 +9,7 @@ local VertexLayout = require("hood.vertex_layout")
 local backend = os.getenv("VULKAN") and "vulkan" or "opengl"
 print("Using backend:", backend)
 
+---@type string
 local dirName = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
 
 -- Create event loop and window
