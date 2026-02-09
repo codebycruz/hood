@@ -25,7 +25,7 @@ local cachedDescriptors = setmetatable({}, { __mode = "k" })
 function VKCommandEncoder:beginRendering(descriptor)
 	local vkDescriptor = cachedDescriptors[descriptor]
 	if not vkDescriptor then
-		vkDescriptor = vk.newRenderPassBeginInfo()
+		vkDescriptor = vk.RenderPassBeginInfo()
 
 		-- TODO: Need to get a renderpass here.
 		-- cachedDescriptors[descriptor] = vkDescriptor

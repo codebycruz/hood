@@ -30,6 +30,7 @@ do
 	end
 
 	defStruct("PresentInfoKHR", "PRESENT_INFO_KHR")
+	defStruct("RenderPassBeginInfo", "RENDER_PASS_BEGIN_INFO")
 end
 
 -- Constants
@@ -194,12 +195,6 @@ do
 
 	---@type fun(device: vk.ffi.Device, name: string): ffi.cdata*
 	vk.getDeviceProcAddr = C.vkGetDeviceProcAddr
-end
-
-function vk.newRenderPassBeginInfo()
-	local info = ffi.new("VkRenderPassBeginInfo")
-	info.sType = vk.StructureType.RENDER_PASS_BEGIN_INFO
-	return info --[[@as vk.ffi.RenderPassBeginInfo]]
 end
 
 return vk
