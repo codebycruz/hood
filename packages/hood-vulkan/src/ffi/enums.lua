@@ -77,6 +77,150 @@ vk.VertexInputRate = {
 	INSTANCE = 1,
 }
 
+---@enum vk.PrimitiveTopology
+vk.PrimitiveTopology = {
+	POINT_LIST = 0,
+	LINE_LIST = 1,
+	LINE_STRIP = 2,
+	TRIANGLE_LIST = 3,
+	TRIANGLE_STRIP = 4,
+	TRIANGLE_FAN = 5,
+	LINE_LIST_WITH_ADJACENCY = 6,
+	LINE_STRIP_WITH_ADJACENCY = 7,
+	TRIANGLE_LIST_WITH_ADJACENCY = 8,
+	TRIANGLE_STRIP_WITH_ADJACENCY = 9,
+	PATCH_LIST = 10,
+}
+
+---@enum vk.PolygonMode
+vk.PolygonMode = {
+	FILL = 0,
+	LINE = 1,
+	POINT = 2,
+}
+
+---@enum vk.CullModeFlags
+vk.CullModeFlags = {
+	NONE = 0,
+	FRONT = 0x00000001,
+	BACK = 0x00000002,
+	FRONT_AND_BACK = 0x00000003,
+}
+
+---@enum vk.FrontFace
+vk.FrontFace = {
+	COUNTER_CLOCKWISE = 0,
+	CLOCKWISE = 1,
+}
+
+---@enum vk.SampleCountFlagBits
+vk.SampleCountFlagBits = {
+	COUNT_1 = 0x00000001,
+	COUNT_2 = 0x00000002,
+	COUNT_4 = 0x00000004,
+	COUNT_8 = 0x00000008,
+	COUNT_16 = 0x00000010,
+	COUNT_32 = 0x00000020,
+	COUNT_64 = 0x00000040,
+}
+
+---@enum vk.CompareOp
+vk.CompareOp = {
+	NEVER = 0,
+	LESS = 1,
+	EQUAL = 2,
+	LESS_OR_EQUAL = 3,
+	GREATER = 4,
+	NOT_EQUAL = 5,
+	GREATER_OR_EQUAL = 6,
+	ALWAYS = 7,
+}
+
+---@enum vk.StencilOp
+vk.StencilOp = {
+	KEEP = 0,
+	ZERO = 1,
+	REPLACE = 2,
+	INCREMENT_AND_CLAMP = 3,
+	DECREMENT_AND_CLAMP = 4,
+	INVERT = 5,
+	INCREMENT_AND_WRAP = 6,
+	DECREMENT_AND_WRAP = 7,
+}
+
+---@enum vk.BlendFactor
+vk.BlendFactor = {
+	ZERO = 0,
+	ONE = 1,
+	SRC_COLOR = 2,
+	ONE_MINUS_SRC_COLOR = 3,
+	DST_COLOR = 4,
+	ONE_MINUS_DST_COLOR = 5,
+	SRC_ALPHA = 6,
+	ONE_MINUS_SRC_ALPHA = 7,
+	DST_ALPHA = 8,
+	ONE_MINUS_DST_ALPHA = 9,
+	CONSTANT_COLOR = 10,
+	ONE_MINUS_CONSTANT_COLOR = 11,
+	CONSTANT_ALPHA = 12,
+	ONE_MINUS_CONSTANT_ALPHA = 13,
+	SRC_ALPHA_SATURATE = 14,
+	SRC1_COLOR = 15,
+	ONE_MINUS_SRC1_COLOR = 16,
+	SRC1_ALPHA = 17,
+	ONE_MINUS_SRC1_ALPHA = 18,
+}
+
+---@enum vk.BlendOp
+vk.BlendOp = {
+	ADD = 0,
+	SUBTRACT = 1,
+	REVERSE_SUBTRACT = 2,
+	MIN = 3,
+	MAX = 4,
+}
+
+---@enum vk.ColorComponentFlags
+vk.ColorComponentFlags = {
+	R = 0x00000001,
+	G = 0x00000002,
+	B = 0x00000004,
+	A = 0x00000008,
+}
+
+---@enum vk.LogicOp
+vk.LogicOp = {
+	CLEAR = 0,
+	AND = 1,
+	AND_REVERSE = 2,
+	COPY = 3,
+	AND_INVERTED = 4,
+	NO_OP = 5,
+	XOR = 6,
+	OR = 7,
+	NOR = 8,
+	EQUIVALENT = 9,
+	INVERT = 10,
+	OR_REVERSE = 11,
+	COPY_INVERTED = 12,
+	OR_INVERTED = 13,
+	NAND = 14,
+	SET = 15,
+}
+
+---@enum vk.DynamicState
+vk.DynamicState = {
+	VIEWPORT = 0,
+	SCISSOR = 1,
+	LINE_WIDTH = 2,
+	DEPTH_BIAS = 3,
+	BLEND_CONSTANTS = 4,
+	DEPTH_BOUNDS = 5,
+	STENCIL_COMPARE_MASK = 6,
+	STENCIL_WRITE_MASK = 7,
+	STENCIL_REFERENCE = 8,
+}
+
 ---@enum vk.SharingMode
 vk.SharingMode = {
 	EXCLUSIVE = 0,

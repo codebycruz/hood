@@ -165,18 +165,108 @@
 ---@field vertexAttributeDescriptionCount number
 ---@field pVertexAttributeDescriptions vk.ffi.VertexInputAttributeDescription*
 
+---@class vk.ffi.PipelineInputAssemblyStateCreateInfo: vk.ffi.BaseStruct
+---@field topology vk.PrimitiveTopology
+---@field primitiveRestartEnable number
+
+---@class vk.ffi.PipelineTessellationStateCreateInfo: vk.ffi.BaseStruct
+---@field patchControlPoints number
+
+---@class vk.ffi.Viewport: ffi.cdata*
+---@field x number
+---@field y number
+---@field width number
+---@field height number
+---@field minDepth number
+---@field maxDepth number
+
+---@class vk.ffi.Offset2D: ffi.cdata*
+---@field x number
+---@field y number
+
+---@class vk.ffi.Rect2D: ffi.cdata*
+---@field offset vk.ffi.Offset2D
+---@field extent vk.ffi.Extent2D
+
+---@class vk.ffi.PipelineViewportStateCreateInfo: vk.ffi.BaseStruct
+---@field viewportCount number
+---@field pViewports vk.ffi.Viewport?
+---@field scissorCount number
+---@field pScissors vk.ffi.Rect2D?
+
+---@class vk.ffi.PipelineRasterizationStateCreateInfo: vk.ffi.BaseStruct
+---@field depthClampEnable number
+---@field rasterizerDiscardEnable number
+---@field polygonMode vk.PolygonMode
+---@field cullMode vk.CullModeFlags
+---@field frontFace vk.FrontFace
+---@field depthBiasEnable number
+---@field depthBiasConstantFactor number
+---@field depthBiasClamp number
+---@field depthBiasSlopeFactor number
+---@field lineWidth number
+
+---@class vk.ffi.PipelineMultisampleStateCreateInfo: vk.ffi.BaseStruct
+---@field rasterizationSamples vk.SampleCountFlagBits
+---@field sampleShadingEnable number
+---@field minSampleShading number
+---@field pSampleMask ffi.cdata*?
+---@field alphaToCoverageEnable number
+---@field alphaToOneEnable number
+
+---@class vk.ffi.StencilOpState: ffi.cdata*
+---@field failOp vk.StencilOp
+---@field passOp vk.StencilOp
+---@field depthFailOp vk.StencilOp
+---@field compareOp vk.CompareOp
+---@field compareMask number
+---@field writeMask number
+---@field reference number
+
+---@class vk.ffi.PipelineDepthStencilStateCreateInfo: vk.ffi.BaseStruct
+---@field depthTestEnable number
+---@field depthWriteEnable number
+---@field depthCompareOp vk.CompareOp
+---@field depthBoundsTestEnable number
+---@field stencilTestEnable number
+---@field front vk.ffi.StencilOpState
+---@field back vk.ffi.StencilOpState
+---@field minDepthBounds number
+---@field maxDepthBounds number
+
+---@class vk.ffi.PipelineColorBlendAttachmentState: ffi.cdata*
+---@field blendEnable number
+---@field srcColorBlendFactor vk.BlendFactor
+---@field dstColorBlendFactor vk.BlendFactor
+---@field colorBlendOp vk.BlendOp
+---@field srcAlphaBlendFactor vk.BlendFactor
+---@field dstAlphaBlendFactor vk.BlendFactor
+---@field alphaBlendOp vk.BlendOp
+---@field colorWriteMask vk.ColorComponentFlags
+
+---@class vk.ffi.PipelineColorBlendStateCreateInfo: vk.ffi.BaseStruct
+---@field logicOpEnable number
+---@field logicOp vk.LogicOp
+---@field attachmentCount number
+---@field pAttachments vk.ffi.PipelineColorBlendAttachmentState?
+---@field blendConstants ffi.cdata*
+
+---@class vk.ffi.PipelineDynamicStateCreateInfo: vk.ffi.BaseStruct
+---@field dynamicStateCount number
+---@field pDynamicStates ffi.cdata*
+
 ---@class vk.ffi.GraphicsPipelineCreateInfo: vk.ffi.BaseStruct
 ---@field stageCount number
 ---@field pStages vk.ffi.PipelineShaderStageCreateInfo
----@field pVertexInputState userdata?
----@field pInputAssemblyState userdata?
----@field pTessellationState userdata?
----@field pViewportState userdata?
----@field pRasterizationState userdata?
----@field pMultisampleState userdata?
----@field pDepthStencilState userdata?
----@field pColorBlendState userdata?
----@field pDynamicState userdata?
+---@field pVertexInputState vk.ffi.PipelineVertexInputStateCreateInfo?
+---@field pInputAssemblyState vk.ffi.PipelineInputAssemblyStateCreateInfo?
+---@field pTessellationState vk.ffi.PipelineTessellationStateCreateInfo?
+---@field pViewportState vk.ffi.PipelineViewportStateCreateInfo?
+---@field pRasterizationState vk.ffi.PipelineRasterizationStateCreateInfo?
+---@field pMultisampleState vk.ffi.PipelineMultisampleStateCreateInfo?
+---@field pDepthStencilState vk.ffi.PipelineDepthStencilStateCreateInfo?
+---@field pColorBlendState vk.ffi.PipelineColorBlendStateCreateInfo?
+---@field pDynamicState vk.ffi.PipelineDynamicStateCreateInfo?
 ---@field layout vk.ffi.PipelineLayout
 ---@field renderPass vk.ffi.RenderPass
 ---@field subpass number?
