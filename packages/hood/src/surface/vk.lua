@@ -11,6 +11,7 @@ local vkFormatToHoodFormat = {
 	[vk.Format.R8G8B8A8_UNORM] = hood.TextureFormat.Rgba8UNorm,
 	[vk.Format.B8G8R8A8_UNORM] = hood.TextureFormat.Bgra8UNorm,
 	[vk.Format.R8G8B8A8_UINT] = hood.TextureFormat.Rgba8Uint,
+	[vk.Format.B8G8R8A8_SRGB] = hood.TextureFormat.Bgra8Srgb,
 }
 
 ---@class hood.vk.Surface

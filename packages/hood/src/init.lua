@@ -36,6 +36,7 @@ hood.TextureFormat = {
 	Depth32Float = 5,
 
 	Bgra8UNorm = 6,
+	Bgra8Srgb = 7,
 }
 
 ---@enum hood.AddressMode

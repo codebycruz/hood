@@ -26,6 +26,7 @@ local textureFormatMap = {
 	[hood.TextureFormat.Depth24Plus] = vk.Format.X8_D24_UNORM_PACK32,
 	[hood.TextureFormat.Depth32Float] = vk.Format.D32_SFLOAT,
 	[hood.TextureFormat.Bgra8UNorm] = vk.Format.B8G8R8A8_UNORM,
+	[hood.TextureFormat.Bgra8Srgb] = vk.Format.B8G8R8A8_SRGB,
 }
 
 ---@type table<hood.CompareFunction, vk.CompareOp>
