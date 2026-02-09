@@ -37,6 +37,7 @@ vk.ImageLayout = {
 	TRANSFER_SRC_OPTIMAL = 6,
 	TRANSFER_DST_OPTIMAL = 7,
 	PREINITIALIZED = 8,
+	PRESENT_SRC_KHR = 1000001002,
 }
 
 ---@enum vk.ImageType

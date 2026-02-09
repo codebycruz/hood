@@ -56,18 +56,258 @@ return function(vk)
 		return pipelineLayout[0]
 	end
 
+	---@class vk.PipelineShaderStageCreateInfo
+	---@field stage vk.ShaderStageFlagBits
+	---@field module vk.ffi.ShaderModule
+	---@field name string?
+
+	---@class vk.VertexInputBindingDescription
+	---@field binding number
+	---@field stride number
+	---@field inputRate vk.VertexInputRate
+
+	---@class vk.VertexInputAttributeDescription
+	---@field location number
+	---@field binding number
+	---@field format vk.Format
+	---@field offset number
+
+	---@class vk.PipelineVertexInputStateCreateInfo
+	---@field bindings vk.VertexInputBindingDescription[]?
+	---@field attributes vk.VertexInputAttributeDescription[]?
+
+	---@class vk.PipelineInputAssemblyStateCreateInfo
+	---@field topology vk.PrimitiveTopology
+	---@field primitiveRestartEnable boolean?
+
+	---@class vk.PipelineViewportStateCreateInfo
+	---@field viewportCount number?
+	---@field scissorCount number?
+
+	---@class vk.PipelineRasterizationStateCreateInfo
+	---@field depthClampEnable boolean?
+	---@field rasterizerDiscardEnable boolean?
+	---@field polygonMode vk.PolygonMode
+	---@field cullMode vk.CullModeFlags
+	---@field frontFace vk.FrontFace
+	---@field depthBiasEnable boolean?
+	---@field depthBiasConstantFactor number?
+	---@field depthBiasClamp number?
+	---@field depthBiasSlopeFactor number?
+	---@field lineWidth number
+
+	---@class vk.PipelineMultisampleStateCreateInfo
+	---@field rasterizationSamples vk.SampleCountFlagBits
+	---@field sampleShadingEnable boolean?
+	---@field minSampleShading number?
+
+	---@class vk.PipelineDepthStencilStateCreateInfo
+	---@field depthTestEnable boolean?
+	---@field depthWriteEnable boolean?
+	---@field depthCompareOp vk.CompareOp?
+
+	---@class vk.PipelineColorBlendAttachmentState
+	---@field blendEnable boolean?
+	---@field srcColorBlendFactor vk.BlendFactor?
+	---@field dstColorBlendFactor vk.BlendFactor?
+	---@field colorBlendOp vk.BlendOp?
+	---@field srcAlphaBlendFactor vk.BlendFactor?
+	---@field dstAlphaBlendFactor vk.BlendFactor?
+	---@field alphaBlendOp vk.BlendOp?
+	---@field colorWriteMask vk.ColorComponentFlags?
+
+	---@class vk.PipelineColorBlendStateCreateInfo
+	---@field logicOpEnable boolean?
+	---@field logicOp vk.LogicOp?
+	---@field attachments vk.PipelineColorBlendAttachmentState[]?
+
+	---@class vk.PipelineDynamicStateCreateInfo
+	---@field dynamicStates vk.DynamicState[]
+
+	---@class vk.GraphicsPipelineCreateInfo
+	---@field stages vk.PipelineShaderStageCreateInfo[]
+	---@field vertexInputState vk.PipelineVertexInputStateCreateInfo?
+	---@field inputAssemblyState vk.PipelineInputAssemblyStateCreateInfo?
+	---@field viewportState vk.PipelineViewportStateCreateInfo?
+	---@field rasterizationState vk.PipelineRasterizationStateCreateInfo?
+	---@field multisampleState vk.PipelineMultisampleStateCreateInfo?
+	---@field depthStencilState vk.PipelineDepthStencilStateCreateInfo?
+	---@field colorBlendState vk.PipelineColorBlendStateCreateInfo?
+	---@field dynamicState vk.PipelineDynamicStateCreateInfo?
+	---@field layout vk.ffi.PipelineLayout
+	---@field renderPass vk.ffi.RenderPass
+	---@field subpass number?
+
 	---@param pipelineCache vk.ffi.PipelineCache?
-	---@param infos vk.ffi.GraphicsPipelineCreateInfo[]
+	---@param infos vk.GraphicsPipelineCreateInfo[]
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.Pipeline[]
 	function VKDevice:createGraphicsPipelines(pipelineCache, infos, allocator)
 		local count = #infos
 		local infoArray = ffi.new("VkGraphicsPipelineCreateInfo[?]", count)
+
 		for i = 1, count do
-			local info = ffi.new("VkGraphicsPipelineCreateInfo", infos[i])
-			info.sType = vk.StructureType.GRAPHICS_PIPELINE_CREATE_INFO
-			infoArray[i - 1] = info
+			local info = infos[i]
+
+			-- Shader stages
+			local stageCount = #info.stages
+			local stages = ffi.new("VkPipelineShaderStageCreateInfo[?]", stageCount)
+			for j, stage in ipairs(info.stages) do
+				stages[j - 1].sType = vk.StructureType.PIPELINE_SHADER_STAGE_CREATE_INFO
+				stages[j - 1].stage = stage.stage
+				stages[j - 1].module = stage.module
+				stages[j - 1].pName = stage.name or "main"
+			end
+
+			-- Vertex input state
+			local vertexInputState = nil
+			if info.vertexInputState then
+				local vis = info.vertexInputState
+				local bindings = vis.bindings or {}
+				local attributes = vis.attributes or {}
+
+				local bindingArray = ffi.new("VkVertexInputBindingDescription[?]", math.max(#bindings, 1))
+				for j, b in ipairs(bindings) do
+					bindingArray[j - 1].binding = b.binding
+					bindingArray[j - 1].stride = b.stride
+					bindingArray[j - 1].inputRate = b.inputRate
+				end
+
+				local attrArray = ffi.new("VkVertexInputAttributeDescription[?]", math.max(#attributes, 1))
+				for j, a in ipairs(attributes) do
+					attrArray[j - 1].location = a.location
+					attrArray[j - 1].binding = a.binding
+					attrArray[j - 1].format = a.format
+					attrArray[j - 1].offset = a.offset
+				end
+
+				vertexInputState = ffi.new("VkPipelineVertexInputStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+					vertexBindingDescriptionCount = #bindings,
+					pVertexBindingDescriptions = bindingArray,
+					vertexAttributeDescriptionCount = #attributes,
+					pVertexAttributeDescriptions = attrArray,
+				})
+			end
+
+			-- Input assembly state
+			local inputAssemblyState = nil
+			if info.inputAssemblyState then
+				inputAssemblyState = ffi.new("VkPipelineInputAssemblyStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+					topology = info.inputAssemblyState.topology,
+					primitiveRestartEnable = info.inputAssemblyState.primitiveRestartEnable and 1 or 0,
+				})
+			end
+
+			-- Viewport state
+			local viewportState = nil
+			if info.viewportState then
+				viewportState = ffi.new("VkPipelineViewportStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+					viewportCount = info.viewportState.viewportCount or 1,
+					scissorCount = info.viewportState.scissorCount or 1,
+				})
+			end
+
+			-- Rasterization state
+			local rasterizationState = nil
+			if info.rasterizationState then
+				local rs = info.rasterizationState
+				rasterizationState = ffi.new("VkPipelineRasterizationStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+					depthClampEnable = rs.depthClampEnable and 1 or 0,
+					rasterizerDiscardEnable = rs.rasterizerDiscardEnable and 1 or 0,
+					polygonMode = rs.polygonMode,
+					cullMode = rs.cullMode,
+					frontFace = rs.frontFace,
+					depthBiasEnable = rs.depthBiasEnable and 1 or 0,
+					depthBiasConstantFactor = rs.depthBiasConstantFactor or 0,
+					depthBiasClamp = rs.depthBiasClamp or 0,
+					depthBiasSlopeFactor = rs.depthBiasSlopeFactor or 0,
+					lineWidth = rs.lineWidth,
+				})
+			end
+
+			-- Multisample state
+			local multisampleState = nil
+			if info.multisampleState then
+				multisampleState = ffi.new("VkPipelineMultisampleStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+					rasterizationSamples = info.multisampleState.rasterizationSamples,
+					sampleShadingEnable = info.multisampleState.sampleShadingEnable and 1 or 0,
+					minSampleShading = info.multisampleState.minSampleShading or 0,
+				})
+			end
+
+			-- Depth stencil state
+			local depthStencilState = nil
+			if info.depthStencilState then
+				local ds = info.depthStencilState
+				depthStencilState = ffi.new("VkPipelineDepthStencilStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+					depthTestEnable = ds.depthTestEnable and 1 or 0,
+					depthWriteEnable = ds.depthWriteEnable and 1 or 0,
+					depthCompareOp = ds.depthCompareOp or 0,
+				})
+			end
+
+			-- Color blend state
+			local colorBlendState = nil
+			if info.colorBlendState then
+				local cb = info.colorBlendState
+				local attachments = cb.attachments or {}
+				local attachmentArray = ffi.new("VkPipelineColorBlendAttachmentState[?]", math.max(#attachments, 1))
+				for j, att in ipairs(attachments) do
+					attachmentArray[j - 1].blendEnable = att.blendEnable and 1 or 0
+					attachmentArray[j - 1].srcColorBlendFactor = att.srcColorBlendFactor or 0
+					attachmentArray[j - 1].dstColorBlendFactor = att.dstColorBlendFactor or 0
+					attachmentArray[j - 1].colorBlendOp = att.colorBlendOp or 0
+					attachmentArray[j - 1].srcAlphaBlendFactor = att.srcAlphaBlendFactor or 0
+					attachmentArray[j - 1].dstAlphaBlendFactor = att.dstAlphaBlendFactor or 0
+					attachmentArray[j - 1].alphaBlendOp = att.alphaBlendOp or 0
+					attachmentArray[j - 1].colorWriteMask = att.colorWriteMask or 0xF
+				end
+
+				colorBlendState = ffi.new("VkPipelineColorBlendStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+					logicOpEnable = cb.logicOpEnable and 1 or 0,
+					logicOp = cb.logicOp or 0,
+					attachmentCount = #attachments,
+					pAttachments = attachmentArray,
+				})
+			end
+
+			-- Dynamic state
+			local dynamicState = nil
+			if info.dynamicState then
+				local ds = info.dynamicState.dynamicStates
+				local stateArray = ffi.new("int32_t[?]", #ds, ds)
+				dynamicState = ffi.new("VkPipelineDynamicStateCreateInfo", {
+					sType = vk.StructureType.PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+					dynamicStateCount = #ds,
+					pDynamicStates = stateArray,
+				})
+			end
+
+			infoArray[i - 1] = ffi.new("VkGraphicsPipelineCreateInfo", {
+				sType = vk.StructureType.GRAPHICS_PIPELINE_CREATE_INFO,
+				stageCount = stageCount,
+				pStages = stages,
+				pVertexInputState = vertexInputState,
+				pInputAssemblyState = inputAssemblyState,
+				pViewportState = viewportState,
+				pRasterizationState = rasterizationState,
+				pMultisampleState = multisampleState,
+				pDepthStencilState = depthStencilState,
+				pColorBlendState = colorBlendState,
+				pDynamicState = dynamicState,
+				layout = info.layout,
+				renderPass = info.renderPass,
+				subpass = info.subpass or 0,
+			})
 		end
+
 		local pipelines = ffi.new("VkPipeline[?]", count)
 		local result = self.v1_0.vkCreateGraphicsPipelines(self.handle, pipelineCache or 0, count, infoArray, allocator,
 			pipelines)
@@ -81,14 +321,142 @@ return function(vk)
 		return pipelineList
 	end
 
-	---@param info vk.ffi.RenderPassCreateInfo
+	---@class vk.AttachmentDescription
+	---@field format vk.Format
+	---@field samples vk.SampleCountFlagBits?
+	---@field loadOp vk.AttachmentLoadOp
+	---@field storeOp vk.AttachmentStoreOp
+	---@field stencilLoadOp vk.AttachmentLoadOp?
+	---@field stencilStoreOp vk.AttachmentStoreOp?
+	---@field initialLayout vk.ImageLayout
+	---@field finalLayout vk.ImageLayout
+
+	---@class vk.AttachmentReference
+	---@field attachment number
+	---@field layout vk.ImageLayout
+
+	---@class vk.SubpassDescription
+	---@field pipelineBindPoint vk.PipelineBindPoint
+	---@field inputAttachments vk.AttachmentReference[]?
+	---@field colorAttachments vk.AttachmentReference[]?
+	---@field resolveAttachments vk.AttachmentReference[]?
+	---@field depthStencilAttachment vk.AttachmentReference?
+	---@field preserveAttachments number[]?
+
+	---@class vk.SubpassDependency
+	---@field srcSubpass number
+	---@field dstSubpass number
+	---@field srcStageMask vk.PipelineStageFlags
+	---@field dstStageMask vk.PipelineStageFlags
+	---@field srcAccessMask vk.AccessFlags?
+	---@field dstAccessMask vk.AccessFlags?
+	---@field dependencyFlags number?
+
+	---@class vk.RenderPassCreateInfo
+	---@field attachments vk.AttachmentDescription[]?
+	---@field subpasses vk.SubpassDescription[]
+	---@field dependencies vk.SubpassDependency[]?
+
+	---@param info vk.RenderPassCreateInfo
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.RenderPass
 	function VKDevice:createRenderPass(info, allocator)
-		local info = ffi.new("VkRenderPassCreateInfo", info)
-		info.sType = vk.StructureType.RENDER_PASS_CREATE_INFO
+		local attachments = info.attachments or {}
+		local subpasses = info.subpasses
+		local dependencies = info.dependencies or {}
+
+		local attachmentArray = ffi.new("VkAttachmentDescription[?]", math.max(#attachments, 1))
+		for i, att in ipairs(attachments) do
+			attachmentArray[i - 1].format = att.format
+			attachmentArray[i - 1].samples = att.samples or 1
+			attachmentArray[i - 1].loadOp = att.loadOp
+			attachmentArray[i - 1].storeOp = att.storeOp
+			attachmentArray[i - 1].stencilLoadOp = att.stencilLoadOp or 0
+			attachmentArray[i - 1].stencilStoreOp = att.stencilStoreOp or 0
+			attachmentArray[i - 1].initialLayout = att.initialLayout
+			attachmentArray[i - 1].finalLayout = att.finalLayout
+		end
+
+		local subpassArray = ffi.new("VkSubpassDescription[?]", #subpasses)
+		local refArrays = {}
+		for i, sub in ipairs(subpasses) do
+			subpassArray[i - 1].pipelineBindPoint = sub.pipelineBindPoint
+
+			local colorAtts = sub.colorAttachments or {}
+			if #colorAtts > 0 then
+				local colorRefArray = ffi.new("VkAttachmentReference[?]", #colorAtts)
+				for j, ref in ipairs(colorAtts) do
+					colorRefArray[j - 1].attachment = ref.attachment
+					colorRefArray[j - 1].layout = ref.layout
+				end
+				subpassArray[i - 1].colorAttachmentCount = #colorAtts
+				subpassArray[i - 1].pColorAttachments = colorRefArray
+				refArrays[#refArrays + 1] = colorRefArray
+			end
+
+			local inputAtts = sub.inputAttachments or {}
+			if #inputAtts > 0 then
+				local inputRefArray = ffi.new("VkAttachmentReference[?]", #inputAtts)
+				for j, ref in ipairs(inputAtts) do
+					inputRefArray[j - 1].attachment = ref.attachment
+					inputRefArray[j - 1].layout = ref.layout
+				end
+				subpassArray[i - 1].inputAttachmentCount = #inputAtts
+				subpassArray[i - 1].pInputAttachments = inputRefArray
+				refArrays[#refArrays + 1] = inputRefArray
+			end
+
+			local resolveAtts = sub.resolveAttachments or {}
+			if #resolveAtts > 0 then
+				local resolveRefArray = ffi.new("VkAttachmentReference[?]", #resolveAtts)
+				for j, ref in ipairs(resolveAtts) do
+					resolveRefArray[j - 1].attachment = ref.attachment
+					resolveRefArray[j - 1].layout = ref.layout
+				end
+				subpassArray[i - 1].pResolveAttachments = resolveRefArray
+				refArrays[#refArrays + 1] = resolveRefArray
+			end
+
+			if sub.depthStencilAttachment then
+				local depthRef = ffi.new("VkAttachmentReference")
+				depthRef.attachment = sub.depthStencilAttachment.attachment
+				depthRef.layout = sub.depthStencilAttachment.layout
+				subpassArray[i - 1].pDepthStencilAttachment = depthRef
+				refArrays[#refArrays + 1] = depthRef
+			end
+
+			local preserveAtts = sub.preserveAttachments or {}
+			if #preserveAtts > 0 then
+				local preserveArray = ffi.new("uint32_t[?]", #preserveAtts, preserveAtts)
+				subpassArray[i - 1].preserveAttachmentCount = #preserveAtts
+				subpassArray[i - 1].pPreserveAttachments = preserveArray
+				refArrays[#refArrays + 1] = preserveArray
+			end
+		end
+
+		local dependencyArray = ffi.new("VkSubpassDependency[?]", math.max(#dependencies, 1))
+		for i, dep in ipairs(dependencies) do
+			dependencyArray[i - 1].srcSubpass = dep.srcSubpass
+			dependencyArray[i - 1].dstSubpass = dep.dstSubpass
+			dependencyArray[i - 1].srcStageMask = dep.srcStageMask
+			dependencyArray[i - 1].dstStageMask = dep.dstStageMask
+			dependencyArray[i - 1].srcAccessMask = dep.srcAccessMask or 0
+			dependencyArray[i - 1].dstAccessMask = dep.dstAccessMask or 0
+			dependencyArray[i - 1].dependencyFlags = dep.dependencyFlags or 0
+		end
+
+		local createInfo = ffi.new("VkRenderPassCreateInfo", {
+			sType = vk.StructureType.RENDER_PASS_CREATE_INFO,
+			attachmentCount = #attachments,
+			pAttachments = attachmentArray,
+			subpassCount = #subpasses,
+			pSubpasses = subpassArray,
+			dependencyCount = #dependencies,
+			pDependencies = dependencyArray,
+		})
+
 		local renderPass = ffi.new("VkRenderPass[1]")
-		local result = self.v1_0.vkCreateRenderPass(self.handle, info, allocator, renderPass)
+		local result = self.v1_0.vkCreateRenderPass(self.handle, createInfo, allocator, renderPass)
 		if result ~= 0 then
 			error("Failed to create Vulkan render pass, error code: " .. tostring(result))
 		end

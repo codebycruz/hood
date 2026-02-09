@@ -5,10 +5,14 @@ ffi.cdef([[#embed "ffi/ffidefs.h"]])
 local vkEnums = require("hood-vulkan.ffi.enums")
 
 ---@class vk: vk.RawEnums
+---@field SUBPASS_EXTERNAL number
 local vk = {}
 for k, v in pairs(vkEnums) do
 	vk[k] = v
 end
+
+vk.NULL = 0
+vk.SUBPASS_EXTERNAL = 0xFFFFFFFF
 
 local VKInstance = require("hood-vulkan.instance")(vk)
 

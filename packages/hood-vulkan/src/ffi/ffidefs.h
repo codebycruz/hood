@@ -101,6 +101,11 @@ typedef struct {
   uint32_t height;
 } VkExtent2D;
 
+typedef struct {
+  VkOffset2D offset;
+  VkExtent2D extent;
+} VkRect2D;
+
 typedef uint64_t VkSwapchainKHR;
 typedef uint64_t VkSurfaceKHR;
 
@@ -441,18 +446,201 @@ typedef struct {
 typedef struct {
   VkStructureType sType;
   const void *pNext;
+  VkFlags flags;
+  int32_t stage;
+  VkShaderModule module;
+  const char *pName;
+  const void *pSpecializationInfo;
+} VkPipelineShaderStageCreateInfo;
+
+typedef struct {
+  uint32_t binding;
+  uint32_t stride;
+  int32_t inputRate;
+} VkVertexInputBindingDescription;
+
+typedef struct {
+  uint32_t location;
+  uint32_t binding;
+  VkFormat format;
+  uint32_t offset;
+} VkVertexInputAttributeDescription;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  uint32_t vertexBindingDescriptionCount;
+  const VkVertexInputBindingDescription *pVertexBindingDescriptions;
+  uint32_t vertexAttributeDescriptionCount;
+  const VkVertexInputAttributeDescription *pVertexAttributeDescriptions;
+} VkPipelineVertexInputStateCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  int32_t topology;
+  VkBool32 primitiveRestartEnable;
+} VkPipelineInputAssemblyStateCreateInfo;
+
+typedef struct {
+  float x;
+  float y;
+  float width;
+  float height;
+  float minDepth;
+  float maxDepth;
+} VkViewport;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  uint32_t viewportCount;
+  const VkViewport *pViewports;
+  uint32_t scissorCount;
+  const VkRect2D *pScissors;
+} VkPipelineViewportStateCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  VkBool32 depthClampEnable;
+  VkBool32 rasterizerDiscardEnable;
+  int32_t polygonMode;
+  VkFlags cullMode;
+  int32_t frontFace;
+  VkBool32 depthBiasEnable;
+  float depthBiasConstantFactor;
+  float depthBiasClamp;
+  float depthBiasSlopeFactor;
+  float lineWidth;
+} VkPipelineRasterizationStateCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  VkSampleCountFlags rasterizationSamples;
+  VkBool32 sampleShadingEnable;
+  float minSampleShading;
+  const uint32_t *pSampleMask;
+  VkBool32 alphaToCoverageEnable;
+  VkBool32 alphaToOneEnable;
+} VkPipelineMultisampleStateCreateInfo;
+
+typedef struct {
+  int32_t failOp;
+  int32_t passOp;
+  int32_t depthFailOp;
+  int32_t compareOp;
+  uint32_t compareMask;
+  uint32_t writeMask;
+  uint32_t reference;
+} VkStencilOpState;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  VkBool32 depthTestEnable;
+  VkBool32 depthWriteEnable;
+  int32_t depthCompareOp;
+  VkBool32 depthBoundsTestEnable;
+  VkBool32 stencilTestEnable;
+  VkStencilOpState front;
+  VkStencilOpState back;
+  float minDepthBounds;
+  float maxDepthBounds;
+} VkPipelineDepthStencilStateCreateInfo;
+
+typedef struct {
+  VkBool32 blendEnable;
+  int32_t srcColorBlendFactor;
+  int32_t dstColorBlendFactor;
+  int32_t colorBlendOp;
+  int32_t srcAlphaBlendFactor;
+  int32_t dstAlphaBlendFactor;
+  int32_t alphaBlendOp;
+  VkFlags colorWriteMask;
+} VkPipelineColorBlendAttachmentState;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  VkBool32 logicOpEnable;
+  int32_t logicOp;
+  uint32_t attachmentCount;
+  const VkPipelineColorBlendAttachmentState *pAttachments;
+  float blendConstants[4];
+} VkPipelineColorBlendStateCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  uint32_t dynamicStateCount;
+  const int32_t *pDynamicStates;
+} VkPipelineDynamicStateCreateInfo;
+
+typedef struct {
+  VkFlags flags;
+  VkFormat format;
+  VkSampleCountFlags samples;
+  int32_t loadOp;
+  int32_t storeOp;
+  int32_t stencilLoadOp;
+  int32_t stencilStoreOp;
+  VkImageLayout initialLayout;
+  VkImageLayout finalLayout;
+} VkAttachmentDescription;
+
+typedef struct {
+  uint32_t attachment;
+  VkImageLayout layout;
+} VkAttachmentReference;
+
+typedef struct {
+  VkFlags flags;
+  int32_t pipelineBindPoint;
+  uint32_t inputAttachmentCount;
+  const VkAttachmentReference *pInputAttachments;
+  uint32_t colorAttachmentCount;
+  const VkAttachmentReference *pColorAttachments;
+  const VkAttachmentReference *pResolveAttachments;
+  const VkAttachmentReference *pDepthStencilAttachment;
+  uint32_t preserveAttachmentCount;
+  const uint32_t *pPreserveAttachments;
+} VkSubpassDescription;
+
+typedef struct {
+  uint32_t srcSubpass;
+  uint32_t dstSubpass;
+  VkFlags srcStageMask;
+  VkFlags dstStageMask;
+  VkFlags srcAccessMask;
+  VkFlags dstAccessMask;
+  VkFlags dependencyFlags;
+} VkSubpassDependency;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
   VkPipelineCreateFlags flags;
   uint32_t stageCount;
-  const void *pStages;
-  const void *pVertexInputState;
-  const void *pInputAssemblyState;
+  const VkPipelineShaderStageCreateInfo *pStages;
+  const VkPipelineVertexInputStateCreateInfo *pVertexInputState;
+  const VkPipelineInputAssemblyStateCreateInfo *pInputAssemblyState;
   const void *pTessellationState;
-  const void *pViewportState;
-  const void *pRasterizationState;
-  const void *pMultisampleState;
-  const void *pDepthStencilState;
-  const void *pColorBlendState;
-  const void *pDynamicState;
+  const VkPipelineViewportStateCreateInfo *pViewportState;
+  const VkPipelineRasterizationStateCreateInfo *pRasterizationState;
+  const VkPipelineMultisampleStateCreateInfo *pMultisampleState;
+  const VkPipelineDepthStencilStateCreateInfo *pDepthStencilState;
+  const VkPipelineColorBlendStateCreateInfo *pColorBlendState;
+  const VkPipelineDynamicStateCreateInfo *pDynamicState;
   VkPipelineLayout layout;
   VkRenderPass renderPass;
   uint32_t subpass;
@@ -465,11 +653,11 @@ typedef struct {
   const void *pNext;
   VkRenderPassCreateFlags flags;
   uint32_t attachmentCount;
-  const void *pAttachments;
+  const VkAttachmentDescription *pAttachments;
   uint32_t subpassCount;
-  const void *pSubpasses;
+  const VkSubpassDescription *pSubpasses;
   uint32_t dependencyCount;
-  const void *pDependencies;
+  const VkSubpassDependency *pDependencies;
 } VkRenderPassCreateInfo;
 
 typedef struct {
@@ -619,11 +807,6 @@ typedef struct {
   VkBool32 clipped;
   VkSwapchainKHR oldSwapchain;
 } VkSwapchainCreateInfoKHR;
-
-typedef struct {
-  VkOffset2D offset;
-  VkExtent2D extent;
-} VkRect2D;
 
 typedef struct {
   VkStructureType sType;
