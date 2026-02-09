@@ -5,6 +5,10 @@ local hood = require("hood")
 local Instance = require("hood.instance")
 local VertexLayout = require("hood.vertex_layout")
 
+---@type hood.InstanceBackend
+local backend = os.getenv("VULKAN") and "vulkan" or "opengl"
+print("Using backend:", backend)
+
 local dirName = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
 
 -- Create event loop and window
@@ -14,7 +18,7 @@ eventLoop:register(window)
 window:setTitle("Testing - Triangle")
 
 -- Create hood instance, adapter, and device
-local instance = Instance.new({ backend = "vulkan", flags = { "validate" } })
+local instance = Instance.new({ backend = backend, flags = { "validate" } })
 local adapter = instance:requestAdapter({ powerPreference = "high-performance" })
 local device = adapter:requestDevice()
 
@@ -64,19 +68,22 @@ device.queue:writeBuffer(
 	ffi.new("uint32_t[?]", #indices, indices)
 )
 
+local shaderType = backend == "opengl" and "glsl" or "spirv"
+local shaderExt = backend == "opengl" and "glsl" or "spv"
+
 -- Create pipeline
 local pipeline = device:createPipeline({
 	vertex = {
 		module = {
-			type = "glsl",
-			source = io.open(dirName .. "../shaders/triangle.vert.glsl", "r"):read("*a"),
+			type = shaderType,
+			source = io.open(dirName .. "../../shaders/triangle.vert." .. shaderExt, "r"):read("*a"),
 		},
 		buffers = { vertexLayout },
 	},
 	fragment = {
 		module = {
-			type = "glsl",
-			source = io.open(dirName .. "../shaders/triangle.frag.glsl", "r"):read("*a"),
+			type = shaderType,
+			source = io.open(dirName .. "../../shaders/triangle.frag." .. shaderExt, "r"):read("*a"),
 		},
 		targets = {
 			{
