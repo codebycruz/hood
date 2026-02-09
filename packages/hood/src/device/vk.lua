@@ -1,6 +1,11 @@
 local VKBuffer = require("hood.buffer.vk")
 local VKQueue = require("hood.queue.vk")
 local VKPipeline = require("hood.pipeline.vk")
+local VKCommandEncoder = require("hood.command_encoder.vk")
+local VKSampler = require("hood.sampler.vk")
+local VKTexture = require("hood.texture.vk")
+
+local BindGroup = require("hood.bind_group")
 
 ---@class hood.vk.Device
 ---@field public queue hood.vk.Queue
@@ -36,6 +41,15 @@ end
 ---@param descriptor hood.PipelineDescriptor
 function VKDevice:createPipeline(descriptor)
 	return VKPipeline.new(self, descriptor)
+end
+
+function VKDevice:createCommandEncoder()
+	return VKCommandEncoder.new(self)
+end
+
+---@param entries hood.BindGroupEntry[]
+function VKDevice:createBindGroup(entries)
+	return BindGroup.new(entries)
 end
 
 return VKDevice

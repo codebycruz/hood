@@ -3,10 +3,11 @@ local GLCommandEncoder = require("hood.command_encoder.gl")
 local GLContext = require("hood.gl_context")
 local GLQueue = require("hood.queue.gl")
 local GLPipeline = require("hood.pipeline.gl")
-local GLBindGroup = require("hood.bind_group")
 local GLSampler = require("hood.sampler.gl")
 local GLTexture = require("hood.texture.gl")
 local GLComputePipeline = require("hood.compute_pipeline.gl")
+
+local BindGroup = require("hood.bind_group")
 
 ---@class hood.gl.Device
 ---@field public queue hood.gl.Queue
@@ -40,7 +41,7 @@ end
 ---@param entries hood.BindGroupEntry[]
 function GLDevice:createBindGroup(entries)
 	self.ctx:makeCurrent()
-	return GLBindGroup.new(entries)
+	return BindGroup.new(entries)
 end
 
 ---@param descriptor hood.SamplerDescriptor
