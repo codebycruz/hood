@@ -5,13 +5,38 @@ ffi.cdef([[#embed "ffi/ffidefs.h"]])
 local vkEnums = require("hood-vulkan.ffi.enums")
 
 ---@class vk: vk.RawEnums
+---@field PresentInfoKHR fun(): vk.ffi.PresentInfoKHR
 local vk = {}
 for k, v in pairs(vkEnums) do
 	vk[k] = v
 end
 
-vk.NULL = 0
-vk.SUBPASS_EXTERNAL = 0xFFFFFFFF
+-- Type constructors (typed as fields above)
+do
+	---@param ffiName string
+	---@param structureTypeName string
+	local function defStruct(ffiName, structureTypeName)
+		vk[ffiName] = function()
+			local info = ffi.new("Vk" .. ffiName)
+			info.sType = vk.StructureType[structureTypeName]
+			return info
+		end
+	end
+
+	local function defType(ffiName)
+		vk[ffiName] = function()
+			return ffi.new("Vk" .. ffiName)
+		end
+	end
+
+	defStruct("PresentInfoKHR", "PRESENT_INFO_KHR")
+end
+
+-- Constants
+do
+	vk.NULL = 0
+	vk.SUBPASS_EXTERNAL = 0xFFFFFFFF
+end
 
 local VKInstance = require("hood-vulkan.instance")(vk)
 
