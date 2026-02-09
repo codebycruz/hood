@@ -80,3 +80,5 @@ end
 function VKTexture.fromRaw(device, handle)
 	return setmetatable({ handle = handle }, VKTexture)
 end
+
+return VKTexture
