@@ -271,18 +271,54 @@
 ---@field renderPass vk.ffi.RenderPass
 ---@field subpass number?
 
+---@class vk.ffi.AttachmentDescription: ffi.cdata*
+---@field flags number
+---@field format vk.Format
+---@field samples vk.SampleCountFlagBits
+---@field loadOp vk.AttachmentLoadOp
+---@field storeOp vk.AttachmentStoreOp
+---@field stencilLoadOp vk.AttachmentLoadOp
+---@field stencilStoreOp vk.AttachmentStoreOp
+---@field initialLayout vk.ImageLayout
+---@field finalLayout vk.ImageLayout
+
+---@class vk.ffi.AttachmentReference: ffi.cdata*
+---@field attachment number
+---@field layout vk.ImageLayout
+
+---@class vk.ffi.SubpassDescription: ffi.cdata*
+---@field flags number
+---@field pipelineBindPoint vk.PipelineBindPoint
+---@field inputAttachmentCount number
+---@field pInputAttachments vk.ffi.AttachmentReference?
+---@field colorAttachmentCount number
+---@field pColorAttachments vk.ffi.AttachmentReference?
+---@field pResolveAttachments vk.ffi.AttachmentReference?
+---@field pDepthStencilAttachment vk.ffi.AttachmentReference?
+---@field preserveAttachmentCount number
+---@field pPreserveAttachments ffi.cdata*?
+
+---@class vk.ffi.SubpassDependency: ffi.cdata*
+---@field srcSubpass number
+---@field dstSubpass number
+---@field srcStageMask vk.PipelineStageFlags
+---@field dstStageMask vk.PipelineStageFlags
+---@field srcAccessMask vk.AccessFlags
+---@field dstAccessMask vk.AccessFlags
+---@field dependencyFlags number
+
 ---@class vk.ffi.RenderPassCreateInfo: vk.ffi.BaseStruct
 ---@field attachmentCount number?
----@field pAttachments userdata?
+---@field pAttachments vk.ffi.AttachmentDescription?
 ---@field subpassCount number
----@field pSubpasses userdata
+---@field pSubpasses vk.ffi.SubpassDescription
 ---@field dependencyCount number?
----@field pDependencies userdata?
+---@field pDependencies vk.ffi.SubpassDependency?
 
 ---@class vk.ffi.FramebufferCreateInfo: vk.ffi.BaseStruct
 ---@field renderPass vk.ffi.RenderPass
 ---@field attachmentCount number?
----@field pAttachments userdata?
+---@field pAttachments ffi.cdata*?
 ---@field width number
 ---@field height number
 ---@field layers number
@@ -344,14 +380,14 @@
 ---@class vk.ffi.SwapchainCreateInfoKHR: vk.ffi.BaseStruct
 ---@field surface vk.ffi.SurfaceKHR
 ---@field minImageCount number
----@field imageFormat number
+---@field imageFormat vk.Format
 ---@field imageColorSpace number
----@field imageExtent userdata
+---@field imageExtent vk.ffi.Extent2D
 ---@field imageArrayLayers number
----@field imageUsage number
----@field imageSharingMode number
+---@field imageUsage vk.ImageUsageFlags
+---@field imageSharingMode vk.SharingMode
 ---@field queueFamilyIndexCount number?
----@field pQueueFamilyIndices userdata?
+---@field pQueueFamilyIndices ffi.cdata*?
 ---@field preTransform number
 ---@field compositeAlpha number
 ---@field presentMode number
@@ -359,14 +395,14 @@
 ---@field oldSwapchain vk.ffi.SwapchainKHR
 
 ---@class vk.ffi.CommandBufferBeginInfo: vk.ffi.BaseStruct
----@field pInheritanceInfo userdata?
+---@field pInheritanceInfo ffi.cdata*?
 
 ---@class vk.ffi.RenderPassBeginInfo: vk.ffi.BaseStruct
 ---@field renderPass vk.ffi.RenderPass
 ---@field framebuffer vk.ffi.Framebuffer
----@field renderArea table
+---@field renderArea vk.ffi.Rect2D
 ---@field clearValueCount number?
----@field pClearValues userdata?
+---@field pClearValues ffi.cdata*?
 
 ---@class vk.ffi.SemaphoreCreateInfo: vk.ffi.BaseStruct
 
