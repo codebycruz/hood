@@ -1,7 +1,10 @@
+local ffi = require("ffi")
 local vk = require("hood-vulkan")
 
 local VKAdapter = require("hood.adapter.vk")
 local VKSurface = require("hood.surface.vk")
+
+local isWindows = ffi.os == "Windows"
 
 ---@class hood.vk.Instance
 ---@field handle vk.Instance
@@ -27,7 +30,10 @@ function VKInstance.new(descriptor)
 			apiVersion = vk.ApiVersion.V1_0
 		},
 		enabledLayerNames = hasValidate and { "VK_LAYER_KHRONOS_validation" },
-		enabledExtensionNames = { "VK_KHR_surface" }
+		enabledExtensionNames = {
+			"VK_KHR_surface",
+			isWindows and "VK_KHR_win32_surface" or "VK_KHR_xlib_surface",
+		}
 	})
 
 	return setmetatable({ handle = handle }, VKInstance)

@@ -395,6 +395,22 @@ vk.StructureType = {
 	WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
 }
 
+---@enum vk.CompositeAlphaFlagBitsKHR
+vk.CompositeAlphaFlagBitsKHR = {
+	OPAQUE = 0x00000001,
+	PRE_MULTIPLIED = 0x00000002,
+	POST_MULTIPLIED = 0x00000004,
+	INHERIT = 0x00000008,
+}
+
+---@enum vk.PresentModeKHR
+vk.PresentModeKHR = {
+	IMMEDIATE = 0,
+	MAILBOX = 1,
+	FIFO = 2,
+	FIFO_RELAXED = 3,
+}
+
 ---@enum vk.Format
 vk.Format = {
 	UNDEFINED = 0,
