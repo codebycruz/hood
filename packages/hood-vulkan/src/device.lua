@@ -957,7 +957,7 @@ return function(vk)
 			end
 
 			local result = self.v1_0.vkQueuePresentKHR(queue, info)
-			if result ~= 0 then
+			if result < 0 then
 				error("Failed to present queue, error code: " .. tostring(result))
 			end
 		end
