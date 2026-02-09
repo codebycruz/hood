@@ -810,15 +810,18 @@ return function(vk)
 		if result ~= 0 then
 			error("Failed to get swapchain image count, error code: " .. tostring(result))
 		end
+
 		local images = ffi.new("VkImage[?]", count[0])
 		result = self.v1_0.vkGetSwapchainImagesKHR(self.handle, swapchain, count, images)
 		if result ~= 0 then
 			error("Failed to get swapchain images, error code: " .. tostring(result))
 		end
+
 		local imageTable = {}
 		for i = 0, count[0] - 1 do
 			imageTable[i + 1] = images[i]
 		end
+
 		return imageTable
 	end
 
@@ -837,14 +840,35 @@ return function(vk)
 		return imageIndex[0]
 	end
 
-	---@param queue vk.ffi.Queue
-	---@param info vk.ffi.PresentInfoKHR
-	function VKDevice:queuePresentKHR(queue, info)
-		local presentInfo = ffi.new("VkPresentInfoKHR", info)
-		presentInfo.sType = vk.StructureType.PRESENT_INFO_KHR
-		local result = self.v1_0.vkQueuePresentKHR(queue, presentInfo)
-		if result ~= 0 then
-			error("Failed to present queue, error code: " .. tostring(result))
+	do
+		local swapchains = ffi.new("VkSwapchainKHR[1]")
+		local imageIndices = ffi.new("uint32_t[1]")
+		local semaphores = ffi.new("VkSemaphore[1]")
+
+		local info = vk.PresentInfoKHR()
+		info.swapchainCount = 1
+		info.pSwapchains = swapchains
+		info.pImageIndices = imageIndices
+
+		---@param queue vk.ffi.Queue
+		---@param handle vk.ffi.SwapchainKHR
+		---@param imageIndex number
+		---@param waitSemaphore vk.ffi.Semaphore?
+		function VKDevice:queuePresentKHR(queue, handle, imageIndex, waitSemaphore)
+			swapchains[0] = handle
+			imageIndices[0] = imageIndex
+			if waitSemaphore then
+				semaphores[0] = waitSemaphore
+				info.pWaitSemaphores = semaphores
+				info.waitSemaphoreCount = 1
+			else
+				info.waitSemaphoreCount = 0
+			end
+
+			local result = self.v1_0.vkQueuePresentKHR(queue, info)
+			if result ~= 0 then
+				error("Failed to present queue, error code: " .. tostring(result))
+			end
 		end
 	end
 
@@ -887,7 +911,7 @@ return function(vk)
 	---@field vkCreateSwapchainKHR fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, swapchain: ffi.cdata*): vk.ffi.Result
 	---@field vkGetSwapchainImagesKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, count: ffi.cdata*, images: ffi.cdata*?): vk.ffi.Result
 	---@field vkAcquireNextImageKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, timeout: number, semaphore: vk.ffi.Semaphore?, fence: vk.ffi.Fence?, imageIndex: ffi.cdata*): vk.ffi.Result
-	---@field vkQueuePresentKHR fun(queue: vk.ffi.Queue, info: ffi.cdata*): vk.ffi.Result
+	---@field vkQueuePresentKHR fun(queue: vk.ffi.Queue, info: vk.ffi.PresentInfoKHR): vk.ffi.Result
 
 	---@param handle vk.ffi.Device
 	function VKDevice.new(handle)
