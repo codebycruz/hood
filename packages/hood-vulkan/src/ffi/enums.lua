@@ -46,6 +46,24 @@ vk.ImageType = {
 	TYPE_3D = 2,
 }
 
+---@enum vk.ImageTiling
+vk.ImageTiling = {
+	OPTIMAL = 0,
+	LINEAR = 1,
+}
+
+---@enum vk.ImageUsageFlagBits
+vk.ImageUsageFlagBits = {
+	TRANSFER_SRC = 0x00000001,
+	TRANSFER_DST = 0x00000002,
+	SAMPLED = 0x00000004,
+	STORAGE = 0x00000008,
+	COLOR_ATTACHMENT = 0x00000010,
+	DEPTH_STENCIL_ATTACHMENT = 0x00000020,
+	TRANSIENT_ATTACHMENT = 0x00000040,
+	INPUT_ATTACHMENT = 0x00000080,
+}
+
 ---@enum vk.BufferUsage
 vk.BufferUsage = {
 	TRANSFER_SRC = 0x00000001,

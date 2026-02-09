@@ -1,6 +1,6 @@
 ---@class vk.ffi.BaseStruct
 ---@field sType vk.StructureType?
----@field pNext userdata?
+---@field pNext ffi.cdata*?
 ---@field flags number?
 
 ---@class vk.ffi.Instance: number
@@ -41,9 +41,9 @@
 ---@field extent vk.ffi.Extent3D
 ---@field mipLevels number
 ---@field arrayLayers number
----@field samples vk.SamplecountFlags
+---@field samples vk.SampleCountFlagBits
 ---@field tiling vk.ImageTiling
----@field usage vk.ImageUsageFlags
+---@field usage vk.ImageUsageFlagBits
 ---@field sharingMode vk.SharingMode
 ---@field queueFamilyIndexCount number?
 ---@field pQueueFamilyIndices ffi.cdata*?
@@ -85,9 +85,9 @@
 ---@class vk.ffi.SurfaceCapabilitiesKHR: ffi.cdata*
 ---@field minImageCount number
 ---@field maxImageCount number
----@field currentExtent table
----@field minImageExtent table
----@field maxImageExtent table
+---@field currentExtent vk.ffi.Extent2D
+---@field minImageExtent vk.ffi.Extent2D
+---@field maxImageExtent vk.ffi.Extent2D
 ---@field maxImageArrayLayers number
 ---@field supportedTransforms number
 ---@field currentTransform number
@@ -95,7 +95,7 @@
 ---@field supportedUsageFlags number
 
 ---@class vk.ffi.SurfaceFormatKHR: ffi.cdata*
----@field format number
+---@field format vk.Format
 ---@field colorSpace number
 
 ---@class vk.ffi.ApplicationInfo: vk.ffi.BaseStruct
@@ -112,29 +112,39 @@
 ---@field enabledExtensionCount number?
 ---@field ppEnabledExtensionNames ffi.cdata*?
 
+---@class vk.ffi.DeviceQueueCreateInfo: vk.ffi.BaseStruct
+---@field queueFamilyIndex number
+---@field queueCount number
+---@field pQueuePriorities ffi.cdata*
+
 ---@class vk.ffi.DeviceCreateInfo: vk.ffi.BaseStruct
 ---@field queueCreateInfoCount number?
----@field pQueueCreateInfos userdata?
+---@field pQueueCreateInfos vk.ffi.DeviceQueueCreateInfo?
 ---@field enabledExtensionCount number?
----@field ppEnabledExtensionNames userdata?
----@field pEnabledFeatures userdata?
+---@field ppEnabledExtensionNames ffi.cdata*?
+---@field pEnabledFeatures ffi.cdata*?
 
 ---@class vk.ffi.BufferCreateInfo: vk.ffi.BaseStruct
 ---@field size number
 ---@field usage vk.BufferUsage
 ---@field sharingMode vk.SharingMode?
 ---@field queueFamilyIndexCount number?
----@field pQueueFamilyIndices userdata?
+---@field pQueueFamilyIndices ffi.cdata*?
 
 ---@class vk.ffi.ShaderModuleCreateInfo: vk.ffi.BaseStruct
 ---@field codeSize number
----@field pCode userdata
+---@field pCode ffi.cdata*
+
+---@class vk.ffi.PushConstantRange: ffi.cdata*
+---@field stageFlags vk.ShaderStageFlagBits
+---@field offset number
+---@field size number
 
 ---@class vk.ffi.PipelineLayoutCreateInfo: vk.ffi.BaseStruct
 ---@field setLayoutCount number?
----@field pSetLayouts userdata?
+---@field pSetLayouts ffi.cdata*?
 ---@field pushConstantRangeCount number?
----@field pPushConstantRanges userdata?
+---@field pPushConstantRanges vk.ffi.PushConstantRange?
 
 ---@class vk.ffi.SpecializationInfo: ffi.cdata*
 ---@field mapEntryCount number
@@ -384,7 +394,7 @@
 ---@field imageColorSpace number
 ---@field imageExtent vk.ffi.Extent2D
 ---@field imageArrayLayers number
----@field imageUsage vk.ImageUsageFlags
+---@field imageUsage vk.ImageUsageFlagBits
 ---@field imageSharingMode vk.SharingMode
 ---@field queueFamilyIndexCount number?
 ---@field pQueueFamilyIndices ffi.cdata*?
