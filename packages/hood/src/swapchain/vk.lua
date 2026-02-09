@@ -25,13 +25,12 @@ function VKSwapchain:getCurrentTexture()
 	local imageHandle = self.images[currentVkImageIdx + 1]
 
 	self.currentVkImageIdx = currentVkImageIdx
-	error("return vktexture here")
-	-- return VKTexture.new(self.device.handle, cImageIndex)
+	return VKTexture.fromRaw(self.device, imageHandle)
 end
 
 ---@param queue hood.vk.Queue
 function VKSwapchain:present(queue)
-	self.device.handle:queuePresentKHR(queue.handle, self.handle, self.vkImageIdx)
+	self.device.handle:queuePresentKHR(queue.handle, self.handle, self.currentVkImageIdx)
 end
 
 return VKSwapchain
