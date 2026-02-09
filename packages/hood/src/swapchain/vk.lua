@@ -8,6 +8,7 @@ local VKTexture = require("hood.texture.vk")
 ---@field device hood.vk.Device
 ---@field images vk.ffi.Image[] # 1 indexed array of VkImage handles
 ---@field currentVkImageIdx integer
+---@field imageAvailable vk.ffi.Semaphore
 local VKSwapchain = {}
 VKSwapchain.__index = VKSwapchain
 
@@ -16,12 +17,14 @@ VKSwapchain.__index = VKSwapchain
 function VKSwapchain.new(device, info)
 	local handle = device.handle:createSwapchainKHR(info)
 	local images = device.handle:getSwapchainImagesKHR(handle)
+	local imageAvailable = device.handle:createSemaphore({})
 
-	return setmetatable({ images = images, device = device, handle = handle }, VKSwapchain)
+	return setmetatable({ images = images, device = device, handle = handle, imageAvailable = imageAvailable },
+		VKSwapchain)
 end
 
 function VKSwapchain:getCurrentTexture()
-	local currentVkImageIdx = self.device.handle:acquireNextImageKHR(self.handle, math.huge)
+	local currentVkImageIdx = self.device.handle:acquireNextImageKHR(self.handle, math.huge, self.imageAvailable)
 	local imageHandle = self.images[currentVkImageIdx + 1]
 
 	self.currentVkImageIdx = currentVkImageIdx
