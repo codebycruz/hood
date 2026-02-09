@@ -3,37 +3,75 @@ local ffi = require("ffi")
 
 local VKTexture = require("hood.texture.vk")
 
+
 ---@class hood.vk.Swapchain
 ---@field handle vk.ffi.SwapchainKHR
 ---@field device hood.vk.Device
 ---@field images vk.ffi.Image[] # 1 indexed array of VkImage handles
 ---@field currentVkImageIdx integer
----@field imageAvailable vk.ffi.Semaphore
+---@field imageAvailableSemaphores vk.ffi.Semaphore[]
+---@field renderFinishedSemaphores vk.ffi.Semaphore[]
+---@field inFlightFences vk.ffi.Fence[]
+---@field currentFrame integer
+---@field imageFormat vk.Format
+---@field format hood.TextureFormat
+---@field width number
+---@field height number
 local VKSwapchain = {}
 VKSwapchain.__index = VKSwapchain
 
 ---@param device hood.vk.Device
+---@param format hood.TextureFormat
 ---@param info vk.ffi.SwapchainCreateInfoKHR
-function VKSwapchain.new(device, info)
+function VKSwapchain.new(device, format, info)
 	local handle = device.handle:createSwapchainKHR(info)
 	local images = device.handle:getSwapchainImagesKHR(handle)
-	local imageAvailable = device.handle:createSemaphore({})
 
-	return setmetatable({ images = images, device = device, handle = handle, imageAvailable = imageAvailable },
-		VKSwapchain)
+	local imageAvailableSemaphores = {}
+	local renderFinishedSemaphores = {}
+	local inFlightFences = {}
+	for i = 1, #images do
+		imageAvailableSemaphores[i] = device.handle:createSemaphore({})
+		renderFinishedSemaphores[i] = device.handle:createSemaphore({})
+		inFlightFences[i] = device.handle:createFence({ flags = vk.FenceCreateFlagBits.SIGNALED })
+	end
+
+	return setmetatable({
+		images = images,
+		device = device,
+		handle = handle,
+		imageAvailableSemaphores = imageAvailableSemaphores,
+		renderFinishedSemaphores = renderFinishedSemaphores,
+		inFlightFences = inFlightFences,
+		currentFrame = 1,
+		imageFormat = info.imageFormat,
+		format = format,
+		width = info.imageExtent.width,
+		height = info.imageExtent.height,
+	}, VKSwapchain)
 end
 
 function VKSwapchain:getCurrentTexture()
-	local currentVkImageIdx = self.device.handle:acquireNextImageKHR(self.handle, math.huge, self.imageAvailable)
+	local fence = self.inFlightFences[self.currentFrame]
+
+	-- Wait for this frame's previous work to complete before reusing its semaphores
+	self.device.handle:waitForFences({ fence }, true, math.huge)
+	self.device.handle:resetFences({ fence })
+
+	local sem = self.imageAvailableSemaphores[self.currentFrame]
+	local currentVkImageIdx = self.device.handle:acquireNextImageKHR(self.handle, math.huge, sem)
 	local imageHandle = self.images[currentVkImageIdx + 1]
 
 	self.currentVkImageIdx = currentVkImageIdx
-	return VKTexture.fromRaw(self.device, imageHandle)
+	return VKTexture.fromRaw(self.device, imageHandle, self.imageFormat, self.width, self.height)
 end
 
 ---@param queue hood.vk.Queue
 function VKSwapchain:present(queue)
-	self.device.handle:queuePresentKHR(queue.handle, self.handle, self.currentVkImageIdx)
+	local sem = self.renderFinishedSemaphores[self.currentFrame]
+	self.device.handle:queuePresentKHR(queue.handle, self.handle, self.currentVkImageIdx, sem)
+
+	self.currentFrame = (self.currentFrame % #self.images) + 1
 end
 
 return VKSwapchain

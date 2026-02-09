@@ -1,9 +1,17 @@
 local ffi = require("ffi")
 local vk = require("hood-vulkan")
+local hood = require("hood")
 
 local VKSwapchain = require("hood.swapchain.vk")
 
 local isWindows = ffi.os == "Windows"
+
+---@type table<vk.Format, hood.TextureFormat>
+local vkFormatToHoodFormat = {
+	[vk.Format.R8G8B8A8_UNORM] = hood.TextureFormat.Rgba8UNorm,
+	[vk.Format.B8G8R8A8_UNORM] = hood.TextureFormat.Bgra8UNorm,
+	[vk.Format.R8G8B8A8_UINT] = hood.TextureFormat.Rgba8Uint,
+}
 
 ---@class hood.vk.Surface
 ---@field window winit.Window
@@ -40,6 +48,7 @@ function VKSurface:configure(device, config)
 	local caps = vk.getPhysicalDeviceSurfaceCapabilitiesKHR(device.pd, self.handle)
 	local formats = vk.getPhysicalDeviceSurfaceFormatsKHR(device.pd, self.handle)
 
+	---@type vk.ffi.SurfaceFormatKHR
 	local format = formats[1]
 
 	local imageCount = caps.minImageCount + 1
@@ -53,7 +62,12 @@ function VKSurface:configure(device, config)
 		extent.height = self.window.height
 	end
 
-	return VKSwapchain.new(device, {
+	local hoodFormat = vkFormatToHoodFormat[format.format]
+	if not hoodFormat then
+		error("Unsupported swapchain format: " .. tostring(format.format))
+	end
+
+	return VKSwapchain.new(device, hoodFormat, {
 		surface = self.handle,
 		minImageCount = imageCount,
 		imageFormat = format.format,

@@ -19,18 +19,43 @@ function VKQueue.new(device, familyIdx, idx)
 	return setmetatable({ device = device, handle = handle, familyIdx = familyIdx, idx = idx }, VKQueue)
 end
 
----@type vk.ffi.SubmitInfo
-local submitInfo1 = { commandBufferCount = 0, pCommandBuffers = nil }
-
----@type vk.ffi.SubmitInfo[]
-local submitInfoTbl = { submitInfo1 }
+local commandBuffers = ffi.new("VkCommandBuffer[1]")
+local waitSemaphores = ffi.new("VkSemaphore[1]")
+local signalSemaphores = ffi.new("VkSemaphore[1]")
+local waitStages = ffi.new("uint32_t[1]", vk.PipelineStageFlags.COLOR_ATTACHMENT_OUTPUT)
+local submitArray = ffi.new("VkSubmitInfo[1]")
 
 ---@param buffer hood.vk.CommandBuffer
-function VKQueue:submit(buffer)
-	submitInfo1.commandBufferCount = 1
-	submitInfo1.pCommandBuffers = ffi.new("VkCommandBuffer[1]", buffer.handle)
+---@param swapchain hood.vk.Swapchain?
+function VKQueue:submit(buffer, swapchain)
+	commandBuffers[0] = buffer.handle
 
-	self.device.handle:queueSubmit(self.handle, submitInfoTbl, nil)
+	local info = submitArray[0]
+	info.sType = vk.StructureType.SUBMIT_INFO
+	info.commandBufferCount = 1
+	info.pCommandBuffers = commandBuffers
+
+	if swapchain then
+		waitSemaphores[0] = swapchain.imageAvailableSemaphores[swapchain.currentFrame]
+		signalSemaphores[0] = swapchain.renderFinishedSemaphores[swapchain.currentFrame]
+		info.waitSemaphoreCount = 1
+		info.pWaitSemaphores = waitSemaphores
+		info.pWaitDstStageMask = waitStages
+		info.signalSemaphoreCount = 1
+		info.pSignalSemaphores = signalSemaphores
+	else
+		info.waitSemaphoreCount = 0
+		info.pWaitSemaphores = nil
+		info.pWaitDstStageMask = nil
+		info.signalSemaphoreCount = 0
+		info.pSignalSemaphores = nil
+	end
+
+	local fence = swapchain and swapchain.inFlightFences[swapchain.currentFrame] or 0
+	local result = self.device.handle.v1_0.vkQueueSubmit(self.handle, 1, submitArray, fence)
+	if result ~= 0 then
+		error("Failed to submit to Vulkan queue, error code: " .. tostring(result))
+	end
 end
 
 --- Helper method to write data to a buffer
@@ -42,6 +67,11 @@ function VKQueue:writeBuffer(buffer, size, data, offset)
 	local cmd = VKCommandEncoder.new(self.device)
 	cmd:writeBuffer(buffer, size, data, offset)
 	self:submit(cmd:finish())
+end
+
+---@param swapchain hood.vk.Swapchain
+function VKQueue:present(swapchain)
+	swapchain:present(self)
 end
 
 return VKQueue

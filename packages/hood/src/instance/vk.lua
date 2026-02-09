@@ -27,7 +27,7 @@ function VKInstance.new(descriptor)
 			version = 1,
 			engineName = "Hood",
 			engineVersion = 1,
-			apiVersion = vk.ApiVersion.V1_0
+			apiVersion = vk.ApiVersion.V1_1
 		},
 		enabledLayerNames = hasValidate and { "VK_LAYER_KHRONOS_validation" },
 		enabledExtensionNames = {

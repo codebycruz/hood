@@ -16,7 +16,7 @@ local dirName = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
 local eventLoop = winit.EventLoop.new()
 local window = winit.Window.new(eventLoop, 800, 600)
 eventLoop:register(window)
-window:setTitle("Testing - Triangle")
+window:setTitle("Triangle - Running on " .. backend .. " backend")
 
 -- Create hood instance, adapter, and device
 local instance = Instance.new({ backend = backend, flags = { "validate" } })
@@ -90,7 +90,7 @@ local pipeline = device:createPipeline({
 			{
 				blend = hood.BlendState.AlphaBlending,
 				writeMask = hood.ColorWrites.All,
-				format = hood.TextureFormat.Rgba8UNorm,
+				format = swapchain.format,
 			},
 		},
 	},
@@ -123,7 +123,7 @@ eventLoop:run(function(event, handler)
 		encoder:endRendering()
 
 		local commandBuffer = encoder:finish()
-		device.queue:submit(commandBuffer)
+		device.queue:submit(commandBuffer, swapchain)
 		device.queue:present(swapchain)
 	elseif event.name == "aboutToWait" then
 		handler:requestRedraw(window)

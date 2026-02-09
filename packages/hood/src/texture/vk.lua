@@ -3,6 +3,9 @@ local vk = require("hood-vulkan")
 
 ---@class hood.vk.Texture
 ---@field handle vk.ffi.Image
+---@field format vk.Format?
+---@field width number?
+---@field height number?
 local VKTexture = {}
 VKTexture.__index = VKTexture
 
@@ -19,6 +22,7 @@ local textureFormatToVkFormat = {
 	[hood.TextureFormat.Depth16Unorm] = vk.Format.D16_UNORM,
 	[hood.TextureFormat.Depth24Plus] = vk.Format.X8_D24_UNORM_PACK32,
 	[hood.TextureFormat.Depth32Float] = vk.Format.D32_SFLOAT,
+	[hood.TextureFormat.Bgra8UNorm] = vk.Format.B8G8R8A8_UNORM,
 }
 
 ---@type table<number, vk.SampleCountFlagBits>
@@ -77,8 +81,8 @@ function VKTexture.new(device, descriptor)
 	return setmetatable({ handle = handle }, VKTexture)
 end
 
-function VKTexture.fromRaw(device, handle)
-	return setmetatable({ handle = handle }, VKTexture)
+function VKTexture.fromRaw(device, handle, format, width, height)
+	return setmetatable({ handle = handle, format = format, width = width, height = height }, VKTexture)
 end
 
 return VKTexture

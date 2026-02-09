@@ -71,6 +71,8 @@ typedef int32_t VkImageTiling;
 typedef int32_t VkImageLayout;
 typedef VkFlags VkImageAspectFlags;
 typedef VkFlags VkQueueFlags;
+typedef int32_t VkImageViewType;
+typedef int32_t VkComponentSwizzle;
 
 typedef struct {
   uint32_t width;
@@ -661,6 +663,48 @@ typedef struct {
 } VkRenderPassCreateInfo;
 
 typedef struct {
+  VkComponentSwizzle r;
+  VkComponentSwizzle g;
+  VkComponentSwizzle b;
+  VkComponentSwizzle a;
+} VkComponentMapping;
+
+typedef struct {
+  VkImageAspectFlags aspectMask;
+  uint32_t baseMipLevel;
+  uint32_t levelCount;
+  uint32_t baseArrayLayer;
+  uint32_t layerCount;
+} VkImageSubresourceRange;
+
+typedef union {
+  float float32[4];
+  int32_t int32[4];
+  uint32_t uint32[4];
+} VkClearColorValue;
+
+typedef struct {
+  float depth;
+  uint32_t stencil;
+} VkClearDepthStencilValue;
+
+typedef union {
+  VkClearColorValue color;
+  VkClearDepthStencilValue depthStencil;
+} VkClearValue;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags flags;
+  VkImage image;
+  VkImageViewType viewType;
+  VkFormat format;
+  VkComponentMapping components;
+  VkImageSubresourceRange subresourceRange;
+} VkImageViewCreateInfo;
+
+typedef struct {
   VkStructureType sType;
   const void *pNext;
   VkFramebufferCreateFlags flags;
@@ -879,6 +923,11 @@ VkResult vkCreateRenderPass(VkDevice device,
                             const VkAllocationCallbacks *pAllocator,
                             VkRenderPass *pRenderPass);
 
+VkResult vkCreateImageView(VkDevice device,
+                           const VkImageViewCreateInfo *pCreateInfo,
+                           const VkAllocationCallbacks *pAllocator,
+                           VkImageView *pView);
+
 VkResult vkCreateFramebuffer(VkDevice device,
                              const VkFramebufferCreateInfo *pCreateInfo,
                              const VkAllocationCallbacks *pAllocator,
@@ -999,6 +1048,33 @@ VkResult vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *pPresentInfo);
 void vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                        VkDeviceSize dstOffset, VkDeviceSize dataSize,
                        const void *pData);
+
+VkResult vkWaitForFences(VkDevice device, uint32_t fenceCount,
+                         const VkFence *pFences, VkBool32 waitAll,
+                         uint64_t timeout);
+
+VkResult vkResetFences(VkDevice device, uint32_t fenceCount,
+                       const VkFence *pFences);
+
+void vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                      uint32_t viewportCount, const VkViewport *pViewports);
+
+void vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor,
+                     uint32_t scissorCount, const VkRect2D *pScissors);
+
+void vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer,
+                            uint32_t firstBinding, uint32_t bindingCount,
+                            const VkBuffer *pBuffers,
+                            const VkDeviceSize *pOffsets);
+
+typedef int32_t VkIndexType;
+
+void vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer,
+                          VkDeviceSize offset, VkIndexType indexType);
+
+void vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount,
+                      uint32_t instanceCount, uint32_t firstIndex,
+                      int32_t vertexOffset, uint32_t firstInstance);
 
 typedef uint32_t VkXlibSurfaceCreateFlagsKHR;
 typedef uint32_t VkWin32SurfaceCreateFlagsKHR;

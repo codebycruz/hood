@@ -463,6 +463,20 @@ return function(vk)
 		return renderPass[0]
 	end
 
+	---@param info vk.ffi.ImageViewCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.ImageView
+	function VKDevice:createImageView(info, allocator)
+		local info = ffi.new("VkImageViewCreateInfo", info)
+		info.sType = vk.StructureType.IMAGE_VIEW_CREATE_INFO
+		local imageView = ffi.new("VkImageView[1]")
+		local result = self.v1_0.vkCreateImageView(self.handle, info, allocator, imageView)
+		if result ~= 0 then
+			error("Failed to create Vulkan image view, error code: " .. tostring(result))
+		end
+		return imageView[0]
+	end
+
 	---@param info vk.ffi.FramebufferCreateInfo
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.Framebuffer
@@ -726,6 +740,77 @@ return function(vk)
 		self.v1_0.vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions)
 	end
 
+	---@param fences vk.ffi.Fence[]
+	---@param waitAll boolean
+	---@param timeout number
+	function VKDevice:waitForFences(fences, waitAll, timeout)
+		local count = #fences
+		local fenceArray = ffi.new("VkFence[?]", count)
+		for i = 1, count do
+			fenceArray[i - 1] = fences[i]
+		end
+		local result = self.v1_0.vkWaitForFences(self.handle, count, fenceArray, waitAll and 1 or 0, timeout)
+		if result ~= 0 then
+			error("Failed to wait for fences, error code: " .. tostring(result))
+		end
+	end
+
+	---@param fences vk.ffi.Fence[]
+	function VKDevice:resetFences(fences)
+		local count = #fences
+		local fenceArray = ffi.new("VkFence[?]", count)
+		for i = 1, count do
+			fenceArray[i - 1] = fences[i]
+		end
+		local result = self.v1_0.vkResetFences(self.handle, count, fenceArray)
+		if result ~= 0 then
+			error("Failed to reset fences, error code: " .. tostring(result))
+		end
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param firstViewport number
+	---@param viewportCount number
+	---@param pViewports ffi.cdata*
+	function VKDevice:cmdSetViewport(commandBuffer, firstViewport, viewportCount, pViewports)
+		self.v1_0.vkCmdSetViewport(commandBuffer, firstViewport, viewportCount, pViewports)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param firstScissor number
+	---@param scissorCount number
+	---@param pScissors ffi.cdata*
+	function VKDevice:cmdSetScissor(commandBuffer, firstScissor, scissorCount, pScissors)
+		self.v1_0.vkCmdSetScissor(commandBuffer, firstScissor, scissorCount, pScissors)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param firstBinding number
+	---@param bindingCount number
+	---@param pBuffers ffi.cdata*
+	---@param pOffsets ffi.cdata*
+	function VKDevice:cmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets)
+		self.v1_0.vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param buffer vk.ffi.Buffer
+	---@param offset number
+	---@param indexType number
+	function VKDevice:cmdBindIndexBuffer(commandBuffer, buffer, offset, indexType)
+		self.v1_0.vkCmdBindIndexBuffer(commandBuffer, buffer, offset, indexType)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param indexCount number
+	---@param instanceCount number
+	---@param firstIndex number
+	---@param vertexOffset number
+	---@param firstInstance number
+	function VKDevice:cmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance)
+		self.v1_0.vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance)
+	end
+
 	---@param queue vk.ffi.Queue
 	---@param submits vk.ffi.SubmitInfo[]
 	---@param fence number?
@@ -733,9 +818,15 @@ return function(vk)
 		local count = #submits
 		local submitArray = ffi.new("VkSubmitInfo[?]", count)
 		for i = 1, count do
-			local submit = ffi.new("VkSubmitInfo", submits[i])
-			submit.sType = vk.StructureType.SUBMIT_INFO
-			submitArray[i - 1] = submit
+			local s = submits[i]
+			submitArray[i - 1].sType = vk.StructureType.SUBMIT_INFO
+			submitArray[i - 1].waitSemaphoreCount = s.waitSemaphoreCount or 0
+			submitArray[i - 1].pWaitSemaphores = s.pWaitSemaphores
+			submitArray[i - 1].pWaitDstStageMask = s.pWaitDstStageMask
+			submitArray[i - 1].commandBufferCount = s.commandBufferCount or 0
+			submitArray[i - 1].pCommandBuffers = s.pCommandBuffers
+			submitArray[i - 1].signalSemaphoreCount = s.signalSemaphoreCount or 0
+			submitArray[i - 1].pSignalSemaphores = s.pSignalSemaphores
 		end
 		local result = self.v1_0.vkQueueSubmit(queue, count, submitArray, fence or 0)
 		if result ~= 0 then
@@ -879,6 +970,7 @@ return function(vk)
 	---@field vkCreatePipelineLayout fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, pipelineLayout: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateGraphicsPipelines fun(device: vk.ffi.Device, pipelineCache: vk.ffi.PipelineCache, count: number, infos: ffi.cdata*, allocator: ffi.cdata*?, pipelines: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateRenderPass fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, renderPass: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateImageView fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, imageView: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateFramebuffer fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, framebuffer: ffi.cdata*): vk.ffi.Result
 	---@field vkGetBufferMemoryRequirements fun(device: vk.ffi.Device, buffer: vk.ffi.Buffer, memRequirements: ffi.cdata*)
 	---@field vkGetImageMemoryRequirements fun(device: vk.ffi.Device, image: vk.ffi.Image, memRequirements: ffi.cdata*)
@@ -903,11 +995,18 @@ return function(vk)
 	---@field vkCmdDraw fun(commandBuffer: vk.ffi.CommandBuffer, vertexCount: number, instanceCount: number, firstVertex: number, firstInstance: number)
 	---@field vkCmdUpdateBuffer fun(commandBuffer: vk.ffi.CommandBuffer, dstBuffer: vk.ffi.Buffer, dstOffset: number, dataSize: number, pData: ffi.cdata*)
 	---@field vkCmdCopyBufferToImage fun(commandBuffer: vk.ffi.CommandBuffer, srcBuffer: vk.ffi.Buffer, dstImage: vk.ffi.Image, dstImageLayout: vk.ImageLayout, regionCount: number, pRegions: ffi.cdata*)
+	---@field vkCmdSetViewport fun(commandBuffer: vk.ffi.CommandBuffer, firstViewport: number, viewportCount: number, pViewports: ffi.cdata*)
+	---@field vkCmdSetScissor fun(commandBuffer: vk.ffi.CommandBuffer, firstScissor: number, scissorCount: number, pScissors: ffi.cdata*)
+	---@field vkCmdBindVertexBuffers fun(commandBuffer: vk.ffi.CommandBuffer, firstBinding: number, bindingCount: number, pBuffers: ffi.cdata*, pOffsets: ffi.cdata*)
+	---@field vkCmdBindIndexBuffer fun(commandBuffer: vk.ffi.CommandBuffer, buffer: vk.ffi.Buffer, offset: number, indexType: number)
+	---@field vkCmdDrawIndexed fun(commandBuffer: vk.ffi.CommandBuffer, indexCount: number, instanceCount: number, firstIndex: number, vertexOffset: number, firstInstance: number)
 	---@field vkQueueSubmit fun(queue: vk.ffi.Queue, submitCount: number, submits: ffi.cdata*, fence: number): vk.ffi.Result
 	---@field vkQueueWaitIdle fun(queue: vk.ffi.Queue): vk.ffi.Result
 	---@field vkGetDeviceQueue fun(device: vk.ffi.Device, queueFamilyIndex: number, queueIndex: number, queue: ffi.cdata*)
 	---@field vkCreateSemaphore fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, semaphore: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateFence fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, fence: ffi.cdata*): vk.ffi.Result
+	---@field vkWaitForFences fun(device: vk.ffi.Device, fenceCount: number, pFences: ffi.cdata*, waitAll: number, timeout: number): vk.ffi.Result
+	---@field vkResetFences fun(device: vk.ffi.Device, fenceCount: number, pFences: ffi.cdata*): vk.ffi.Result
 	---@field vkCreateSwapchainKHR fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, swapchain: ffi.cdata*): vk.ffi.Result
 	---@field vkGetSwapchainImagesKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, count: ffi.cdata*, images: ffi.cdata*?): vk.ffi.Result
 	---@field vkAcquireNextImageKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, timeout: number, semaphore: vk.ffi.Semaphore?, fence: vk.ffi.Fence?, imageIndex: ffi.cdata*): vk.ffi.Result
@@ -923,6 +1022,7 @@ return function(vk)
 			vkCreatePipelineLayout = "VkResult(*)(VkDevice, const VkPipelineLayoutCreateInfo*, const VkAllocationCallbacks*, VkPipelineLayout*)",
 			vkCreateGraphicsPipelines = "VkResult(*)(VkDevice, uint64_t, uint32_t, const VkGraphicsPipelineCreateInfo*, const VkAllocationCallbacks*, VkPipeline*)",
 			vkCreateRenderPass = "VkResult(*)(VkDevice, const VkRenderPassCreateInfo*, const VkAllocationCallbacks*, VkRenderPass*)",
+			vkCreateImageView = "VkResult(*)(VkDevice, const VkImageViewCreateInfo*, const VkAllocationCallbacks*, VkImageView*)",
 			vkCreateFramebuffer = "VkResult(*)(VkDevice, const VkFramebufferCreateInfo*, const VkAllocationCallbacks*, VkFramebuffer*)",
 			vkGetBufferMemoryRequirements = "void(*)(VkDevice, VkBuffer, VkMemoryRequirements*)",
 			vkGetImageMemoryRequirements = "void(*)(VkDevice, VkImage, VkMemoryRequirements*)",
@@ -947,11 +1047,18 @@ return function(vk)
 			vkCmdBindDescriptorSets = "void(*)(VkCommandBuffer, VkPipelineBindPoint, VkPipelineLayout, uint32_t, uint32_t, const VkDescriptorSet*, uint32_t, const uint32_t*)",
 			vkCmdCopyBufferToImage = "void(*)(VkCommandBuffer, VkBuffer, VkImage, VkImageLayout, uint32_t, const VkBufferImageCopy*)",
 			vkCmdUpdateBuffer = "void(*)(VkCommandBuffer, VkBuffer, VkDeviceSize, VkDeviceSize, const void*)",
+			vkCmdSetViewport = "void(*)(VkCommandBuffer, uint32_t, uint32_t, const VkViewport*)",
+			vkCmdSetScissor = "void(*)(VkCommandBuffer, uint32_t, uint32_t, const VkRect2D*)",
+			vkCmdBindVertexBuffers = "void(*)(VkCommandBuffer, uint32_t, uint32_t, const VkBuffer*, const VkDeviceSize*)",
+			vkCmdBindIndexBuffer = "void(*)(VkCommandBuffer, VkBuffer, VkDeviceSize, VkIndexType)",
+			vkCmdDrawIndexed = "void(*)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, int32_t, uint32_t)",
 			vkQueueSubmit = "VkResult(*)(VkQueue, uint32_t, const VkSubmitInfo*, uint64_t)",
 			vkQueueWaitIdle = "VkResult(*)(VkQueue)",
 			vkGetDeviceQueue = "void(*)(VkDevice, uint32_t, uint32_t, VkQueue*)",
 			vkCreateSemaphore = "VkResult(*)(VkDevice, const VkSemaphoreCreateInfo*, const VkAllocationCallbacks*, VkSemaphore*)",
 			vkCreateFence = "VkResult(*)(VkDevice, const VkFenceCreateInfo*, const VkAllocationCallbacks*, VkFence*)",
+			vkWaitForFences = "VkResult(*)(VkDevice, uint32_t, const VkFence*, VkBool32, uint64_t)",
+			vkResetFences = "VkResult(*)(VkDevice, uint32_t, const VkFence*)",
 			vkCreateSwapchainKHR = "VkResult(*)(VkDevice, const VkSwapchainCreateInfoKHR*, const VkAllocationCallbacks*, VkSwapchainKHR*)",
 			vkGetSwapchainImagesKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint32_t*, VkImage*)",
 			vkAcquireNextImageKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)",

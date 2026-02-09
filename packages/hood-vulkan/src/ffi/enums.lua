@@ -53,6 +53,24 @@ vk.ImageTiling = {
 	LINEAR = 1,
 }
 
+---@enum vk.ImageViewType
+vk.ImageViewType = {
+	TYPE_1D = 0,
+	TYPE_2D = 1,
+	TYPE_3D = 2,
+	CUBE = 3,
+	TYPE_1D_ARRAY = 4,
+	TYPE_2D_ARRAY = 5,
+	CUBE_ARRAY = 6,
+}
+
+---@enum vk.ImageAspectFlagBits
+vk.ImageAspectFlagBits = {
+	COLOR = 0x00000001,
+	DEPTH = 0x00000002,
+	STENCIL = 0x00000004,
+}
+
 ---@enum vk.ImageUsageFlagBits
 vk.ImageUsageFlagBits = {
 	TRANSFER_SRC = 0x00000001,
@@ -401,6 +419,11 @@ vk.CompositeAlphaFlagBitsKHR = {
 	PRE_MULTIPLIED = 0x00000002,
 	POST_MULTIPLIED = 0x00000004,
 	INHERIT = 0x00000008,
+}
+
+---@enum vk.FenceCreateFlagBits
+vk.FenceCreateFlagBits = {
+	SIGNALED = 0x00000001,
 }
 
 ---@enum vk.PresentModeKHR
