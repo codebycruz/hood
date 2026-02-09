@@ -999,3 +999,32 @@ VkResult vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *pPresentInfo);
 void vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                        VkDeviceSize dstOffset, VkDeviceSize dataSize,
                        const void *pData);
+
+typedef uint32_t VkXlibSurfaceCreateFlagsKHR;
+typedef uint32_t VkWin32SurfaceCreateFlagsKHR;
+
+typedef struct VkXlibSurfaceCreateInfoKHR {
+  VkStructureType sType;
+  const void *pNext;
+  VkXlibSurfaceCreateFlagsKHR flags;
+  void *dpy;
+  uint64_t window;
+} VkXlibSurfaceCreateInfoKHR;
+
+typedef struct VkWin32SurfaceCreateInfoKHR {
+  VkStructureType sType;
+  const void *pNext;
+  VkWin32SurfaceCreateFlagsKHR flags;
+  void *hinstance;
+  void *hwnd;
+} VkWin32SurfaceCreateInfoKHR;
+
+VkResult vkCreateXlibSurfaceKHR(VkInstance instance,
+                                const VkXlibSurfaceCreateInfoKHR *pCreateInfo,
+                                const VkAllocationCallbacks *pAllocator,
+                                VkSurfaceKHR *pSurface);
+
+VkResult vkCreateWin32SurfaceKHR(VkInstance instance,
+                                 const VkWin32SurfaceCreateInfoKHR *pCreateInfo,
+                                 const VkAllocationCallbacks *pAllocator,
+                                 VkSurfaceKHR *pSurface);

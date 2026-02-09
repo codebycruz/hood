@@ -387,6 +387,12 @@ vk.StructureType = {
 	-- VK_KHR_swapchain
 	SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
 	PRESENT_INFO_KHR = 1000001001,
+
+	-- VK_KHR_xlib_surface
+	XLIB_SURFACE_CREATE_INFO_KHR = 1000004000,
+
+	-- VK_KHR_win32_surface
+	WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
 }
 
 ---@enum vk.Format

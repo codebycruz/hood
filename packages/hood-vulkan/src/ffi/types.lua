@@ -445,3 +445,11 @@
 ---@field pipelineCacheUUID ffi.cdata*
 ---@field limits ffi.cdata*
 ---@field sparseProperties ffi.cdata*
+
+---@class vk.ffi.XlibSurfaceCreateInfoKHR: vk.ffi.BaseStruct
+---@field dpy ffi.cdata*
+---@field window number
+
+---@class vk.ffi.Win32SurfaceCreateInfoKHR: vk.ffi.BaseStruct
+---@field hinstance ffi.cdata*
+---@field hwnd ffi.cdata*

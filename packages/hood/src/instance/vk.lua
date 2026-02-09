@@ -67,7 +67,7 @@ end
 
 ---@param window winit.Window
 function VKInstance:createSurface(window)
-	return VKSurface.new(window)
+	return VKSurface.new(self, window)
 end
 
 return VKInstance

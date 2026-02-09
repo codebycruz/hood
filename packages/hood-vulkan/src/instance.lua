@@ -93,15 +93,55 @@ return function(vk)
 		return deviceList
 	end
 
+	---@param createInfo vk.ffi.XlibSurfaceCreateInfoKHR
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.SurfaceKHR
+	function VKInstance:createXlibSurfaceKHR(createInfo, allocator)
+		local surface = ffi.new("VkSurfaceKHR[1]")
+
+		local createInfo = ffi.new("VkXlibSurfaceCreateInfoKHR", createInfo)
+		createInfo.sType = vk.StructureType.XLIB_SURFACE_CREATE_INFO_KHR
+
+		local result = self.v1_0.vkCreateXlibSurfaceKHR(self.handle, createInfo, allocator, surface)
+		if result ~= 0 then
+			error("Failed to create Xlib surface, error code: " .. tostring(result))
+		end
+
+		return surface[0]
+	end
+
+	---@param createInfo vk.ffi.Win32SurfaceCreateInfoKHR
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.SurfaceKHR
+	function VKInstance:createWin32SurfaceKHR(createInfo, allocator)
+		local surface = ffi.new("VkSurfaceKHR[1]")
+
+		local createInfo = ffi.new("VkWin32SurfaceCreateInfoKHR", createInfo)
+		createInfo.sType = vk.StructureType.WIN32_SURFACE_CREATE_INFO_KHR
+
+		local result = self.v1_0.vkCreateWin32SurfaceKHR(self.handle, createInfo, allocator, surface)
+		if result ~= 0 then
+			error("Failed to create Win32 surface, error code: " .. tostring(result))
+		end
+
+		return surface[0]
+	end
+
 	---@class vk.Instance.Fns
 	---@field vkCreateDevice fun(physicalDevice: vk.ffi.PhysicalDevice, info: vk.ffi.DeviceCreateInfo?, allocator: ffi.cdata*?, device: vk.ffi.Device*): vk.ffi.Result
 	---@field vkEnumeratePhysicalDevices fun(instance: vk.ffi.Instance, count: ffi.cdata*, devices: ffi.cdata*?): vk.ffi.Result
+	---@field vkCreateXlibSurfaceKHR fun(instance: vk.ffi.Instance, info: ffi.cdata*, allocator: ffi.cdata*?, surface: ffi.cdata*): vk.ffi.Result
+	---@field vkCreateWin32SurfaceKHR fun(instance: vk.ffi.Instance, info: ffi.cdata*, allocator: ffi.cdata*?, surface: ffi.cdata*): vk.ffi.Result
 
 	---@param handle vk.ffi.Instance
 	function VKInstance.new(handle)
 		local v1_0Types = {
 			vkCreateDevice = "VkResult(*)(VkPhysicalDevice, const VkDeviceCreateInfo*, const void*, VkDevice*)",
 			vkEnumeratePhysicalDevices = "VkResult(*)(VkInstance, uint32_t*, VkPhysicalDevice*)",
+			vkCreateXlibSurfaceKHR =
+			"VkResult(*)(VkInstance, const VkXlibSurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*)",
+			vkCreateWin32SurfaceKHR =
+			"VkResult(*)(VkInstance, const VkWin32SurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*)",
 		}
 
 		---@type vk.Instance.Fns
