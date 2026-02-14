@@ -762,6 +762,17 @@ return function(vk)
 		self.v1_0.vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions)
 	end
 
+	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param srcStageMask vk.PipelineStageFlags
+	---@param dstStageMask vk.PipelineStageFlags
+	---@param imageMemoryBarrierCount number
+	---@param pImageMemoryBarriers ffi.cdata*
+	function VKDevice:cmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, imageMemoryBarrierCount,
+										 pImageMemoryBarriers)
+		self.v1_0.vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, 0, 0, nil, 0, nil,
+			imageMemoryBarrierCount, pImageMemoryBarriers)
+	end
+
 	---@param fences vk.ffi.Fence[]
 	---@param waitAll boolean
 	---@param timeout number
@@ -1035,6 +1046,7 @@ return function(vk)
 	---@field vkQueuePresentKHR fun(queue: vk.ffi.Queue, info: vk.ffi.PresentInfoKHR): vk.ffi.Result
 	---@field vkCreateSampler fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, sampler: ffi.cdata*): vk.ffi.Result
 	---@field vkDestroySampler fun(device: vk.ffi.Device, sampler: vk.ffi.Sampler, allocator: ffi.cdata*?)
+	---@field vkCmdPipelineBarrier fun(commandBuffer: vk.ffi.CommandBuffer, srcStageMask: number, dstStageMask: number, dependencyFlags: number, memoryBarrierCount: number, pMemoryBarriers: ffi.cdata*?, bufferMemoryBarrierCount: number, pBufferMemoryBarriers: ffi.cdata*?, imageMemoryBarrierCount: number, pImageMemoryBarriers: ffi.cdata*?)
 
 	---@param handle vk.ffi.Device
 	function VKDevice.new(handle)
@@ -1089,6 +1101,7 @@ return function(vk)
 			vkQueuePresentKHR = "VkResult(*)(VkQueue, const VkPresentInfoKHR*)",
 			vkCreateSampler = "VkResult(*)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*)",
 			vkDestroySampler = "void(*)(VkDevice, VkSampler, const VkAllocationCallbacks*)",
+			vkCmdPipelineBarrier = "void(*)(VkCommandBuffer, VkFlags, VkFlags, VkFlags, uint32_t, const void*, uint32_t, const void*, uint32_t, const VkImageMemoryBarrier*)",
 		}
 
 		---@type vk.Device.Fns

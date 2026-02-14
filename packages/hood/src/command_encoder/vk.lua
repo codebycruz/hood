@@ -191,6 +191,103 @@ function VKCommandEncoder:writeBuffer(buffer, size, data, offset)
 	self.device.handle:cmdUpdateBuffer(self.buffer.handle, buffer.handle, offset or 0, size, data)
 end
 
+-- TODO: Completely rewrite this
+---@param texture hood.vk.Texture
+---@param descriptor hood.TextureWriteDescriptor
+---@param data ffi.cdata*
+function VKCommandEncoder:writeTexture(texture, descriptor, data)
+	local width = descriptor.width
+	local height = descriptor.height
+	local depth = descriptor.depth or 1
+	local dataSize = (descriptor.bytesPerRow or (width * 4)) * height * depth
+
+	-- Create staging buffer
+	local stagingBuffer = self.device.handle:createBuffer({
+		size = dataSize,
+		usage = vk.BufferUsage.TRANSFER_SRC,
+	})
+
+	local memProps = vk.getPhysicalDeviceMemoryProperties(self.device.pd)
+	local requiredFlags = bit.bor(vk.MemoryPropertyFlags.HOST_VISIBLE, vk.MemoryPropertyFlags.HOST_COHERENT)
+	local memTypeIndex
+	for i = 0, tonumber(memProps.memoryTypeCount) - 1 do
+		if bit.band(tonumber(memProps.memoryTypes[i].propertyFlags), requiredFlags) == requiredFlags then
+			memTypeIndex = i
+			break
+		end
+	end
+	if not memTypeIndex then
+		error("Failed to find host-visible memory type")
+	end
+	local stagingMemory = self.device.handle:allocateMemory({
+		allocationSize = dataSize,
+		memoryTypeIndex = memTypeIndex,
+	})
+	self.device.handle:bindBufferMemory(stagingBuffer, stagingMemory, 0)
+
+	-- Map, copy, unmap
+	local mapped = self.device.handle:mapMemory(stagingMemory, 0, dataSize)
+	ffi.copy(mapped, data + (descriptor.offset or 0), dataSize)
+	self.device.handle:unmapMemory(stagingMemory)
+
+	-- Transition image to TRANSFER_DST_OPTIMAL
+	local mip = descriptor.mip or 0
+	local layer = descriptor.layer or 0
+	local barrier = ffi.new("VkImageMemoryBarrier", {
+		sType = vk.StructureType.IMAGE_MEMORY_BARRIER,
+		dstAccessMask = vk.AccessFlags.TRANSFER_WRITE,
+		oldLayout = vk.ImageLayout.UNDEFINED,
+		newLayout = vk.ImageLayout.TRANSFER_DST_OPTIMAL,
+		srcQueueFamilyIndex = 0xFFFFFFFF, -- VK_QUEUE_FAMILY_IGNORED
+		dstQueueFamilyIndex = 0xFFFFFFFF,
+		image = texture.handle,
+		subresourceRange = {
+			aspectMask = vk.ImageAspectFlagBits.COLOR,
+			baseMipLevel = mip,
+			levelCount = 1,
+			baseArrayLayer = layer,
+			layerCount = 1,
+		},
+	})
+	local barriers = ffi.new("VkImageMemoryBarrier[1]", barrier)
+
+	self.device.handle:cmdPipelineBarrier(
+		self.buffer.handle,
+		vk.PipelineStageFlags.TOP_OF_PIPE,
+		vk.PipelineStageFlags.TRANSFER,
+		1, barriers)
+
+	-- Copy buffer to image
+	local region = ffi.new("VkBufferImageCopy[1]", { {
+		bufferRowLength = descriptor.bytesPerRow and (descriptor.bytesPerRow / 4) or 0,
+		bufferImageHeight = descriptor.rowsPerImage or 0,
+		imageSubresource = {
+			aspectMask = vk.ImageAspectFlagBits.COLOR,
+			mipLevel = mip,
+			baseArrayLayer = layer,
+			layerCount = 1,
+		},
+		imageExtent = { width = width, height = height, depth = depth },
+	} })
+
+	self.device.handle:cmdCopyBufferToImage(
+		self.buffer.handle, stagingBuffer, texture.handle,
+		vk.ImageLayout.TRANSFER_DST_OPTIMAL, 1, region)
+
+	-- Transition image to SHADER_READ_ONLY_OPTIMAL
+	barrier.srcAccessMask = vk.AccessFlags.TRANSFER_WRITE
+	barrier.dstAccessMask = vk.AccessFlags.SHADER_READ
+	barrier.oldLayout = vk.ImageLayout.TRANSFER_DST_OPTIMAL
+	barrier.newLayout = vk.ImageLayout.SHADER_READ_ONLY_OPTIMAL
+	barriers[0] = barrier
+
+	self.device.handle:cmdPipelineBarrier(
+		self.buffer.handle,
+		vk.PipelineStageFlags.TRANSFER,
+		vk.PipelineStageFlags.FRAGMENT_SHADER,
+		1, barriers)
+end
+
 function VKCommandEncoder:finish()
 	self.device.handle:endCommandBuffer(self.buffer.handle)
 	return self.buffer

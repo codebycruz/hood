@@ -69,6 +69,16 @@ function VKQueue:writeBuffer(buffer, size, data, offset)
 	self:submit(cmd:finish())
 end
 
+--- Helper method to write data to a texture
+---@param texture hood.vk.Texture
+---@param descriptor hood.TextureWriteDescriptor
+---@param data ffi.cdata*
+function VKQueue:writeTexture(texture, descriptor, data)
+	local cmd = VKCommandEncoder.new(self.device)
+	cmd:writeTexture(texture, descriptor, data)
+	self:submit(cmd:finish())
+end
+
 ---@param swapchain hood.vk.Swapchain
 function VKQueue:present(swapchain)
 	swapchain:present(self)

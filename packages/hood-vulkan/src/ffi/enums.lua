@@ -83,6 +83,15 @@ vk.ImageUsageFlagBits = {
 	INPUT_ATTACHMENT = 0x00000080,
 }
 
+---@enum vk.MemoryPropertyFlags
+vk.MemoryPropertyFlags = {
+	DEVICE_LOCAL = 0x00000001,
+	HOST_VISIBLE = 0x00000002,
+	HOST_COHERENT = 0x00000004,
+	HOST_CACHED = 0x00000008,
+	LAZILY_ALLOCATED = 0x00000010,
+}
+
 ---@enum vk.BufferUsage
 vk.BufferUsage = {
 	TRANSFER_SRC = 0x00000001,

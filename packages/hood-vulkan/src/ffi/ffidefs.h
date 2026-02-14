@@ -885,6 +885,19 @@ typedef struct {
   VkResult *pResults;
 } VkPresentInfoKHR;
 
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkFlags srcAccessMask;
+  VkFlags dstAccessMask;
+  VkImageLayout oldLayout;
+  VkImageLayout newLayout;
+  uint32_t srcQueueFamilyIndex;
+  uint32_t dstQueueFamilyIndex;
+  VkImage image;
+  VkImageSubresourceRange subresourceRange;
+} VkImageMemoryBarrier;
+
 typedef int32_t VkFilter;
 typedef int32_t VkSamplerMipmapMode;
 typedef int32_t VkSamplerAddressMode;
@@ -1139,3 +1152,12 @@ VkResult vkCreateSampler(VkDevice device,
 
 void vkDestroySampler(VkDevice device, VkSampler sampler,
                       const VkAllocationCallbacks *pAllocator);
+
+void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, VkFlags srcStageMask,
+                          VkFlags dstStageMask, VkFlags dependencyFlags,
+                          uint32_t memoryBarrierCount,
+                          const void *pMemoryBarriers,
+                          uint32_t bufferMemoryBarrierCount,
+                          const void *pBufferMemoryBarriers,
+                          uint32_t imageMemoryBarrierCount,
+                          const VkImageMemoryBarrier *pImageMemoryBarriers);
