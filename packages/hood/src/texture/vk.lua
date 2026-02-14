@@ -48,7 +48,7 @@ local usageToVkUsage = {
 ---@param device hood.vk.Device
 ---@param descriptor hood.TextureDescriptor
 function VKTexture.new(device, descriptor)
-	local samples = sampleCountToVkSampleCount[descriptor.sampleCount or 0]
+	local samples = sampleCountToVkSampleCount[descriptor.sampleCount or 1]
 	if not samples then
 		error("Unsupported sample count: " .. tostring(descriptor.sampleCount))
 	end
