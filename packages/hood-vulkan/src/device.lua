@@ -525,6 +525,8 @@ return function(vk)
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.Image
 	function VKDevice:createImage(createInfo, allocator)
+		local createInfo = ffi.new("VkImageCreateInfo", createInfo)
+		createInfo.sType = vk.StructureType.IMAGE_CREATE_INFO
 		local image = ffi.new("VkImage[1]")
 		local result = self.v1_0.vkCreateImage(self.handle, createInfo, allocator, image)
 		if result ~= 0 then
