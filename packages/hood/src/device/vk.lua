@@ -52,4 +52,9 @@ function VKDevice:createBindGroup(entries)
 	return BindGroup.new(entries)
 end
 
+---@param descriptor hood.TextureDescriptor
+function VKDevice:createTexture(descriptor)
+	return VKTexture.new(self, descriptor)
+end
+
 return VKDevice
