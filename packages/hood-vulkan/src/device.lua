@@ -326,12 +326,12 @@ return function(vk)
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.Pipeline
 	function VKDevice:createComputePipeline(pipelineCache, info, allocator)
-		local stage = ffi.new("VkPipelineShaderStageCreateInfo", info.stage)
-		stage.sType = vk.StructureType.PIPELINE_SHADER_STAGE_CREATE_INFO
-
 		local createInfo = ffi.new("VkComputePipelineCreateInfo")
 		createInfo.sType = vk.StructureType.COMPUTE_PIPELINE_CREATE_INFO
-		createInfo.stage = stage
+		createInfo.stage.sType = vk.StructureType.PIPELINE_SHADER_STAGE_CREATE_INFO
+		createInfo.stage.stage = info.stage.stage
+		createInfo.stage.module = info.stage.module
+		createInfo.stage.pName = info.stage.name or "main"
 		createInfo.layout = info.layout
 
 		local pipeline = ffi.new("VkPipeline[1]")
