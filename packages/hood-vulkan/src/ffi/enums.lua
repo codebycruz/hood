@@ -623,4 +623,34 @@ vk.Format = {
 	ASTC_12x12_SRGB_BLOCK = 184,
 }
 
+---@enum vk.Filter
+vk.Filter = {
+	NEAREST = 0,
+	LINEAR = 1,
+}
+
+---@enum vk.SamplerMipmapMode
+vk.SamplerMipmapMode = {
+	NEAREST = 0,
+	LINEAR = 1,
+}
+
+---@enum vk.SamplerAddressMode
+vk.SamplerAddressMode = {
+	REPEAT = 0,
+	MIRRORED_REPEAT = 1,
+	CLAMP_TO_EDGE = 2,
+	CLAMP_TO_BORDER = 3,
+}
+
+---@enum vk.BorderColor
+vk.BorderColor = {
+	FLOAT_TRANSPARENT_BLACK = 0,
+	INT_TRANSPARENT_BLACK = 1,
+	FLOAT_OPAQUE_BLACK = 2,
+	INT_OPAQUE_BLACK = 3,
+	FLOAT_OPAQUE_WHITE = 4,
+	INT_OPAQUE_WHITE = 5,
+}
+
 return vk

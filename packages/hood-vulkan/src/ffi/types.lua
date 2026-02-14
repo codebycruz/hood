@@ -446,6 +446,25 @@
 ---@field limits ffi.cdata*
 ---@field sparseProperties ffi.cdata*
 
+---@class vk.ffi.SamplerCreateInfo: vk.ffi.BaseStruct
+---@field magFilter vk.Filter
+---@field minFilter vk.Filter
+---@field mipmapMode vk.SamplerMipmapMode
+---@field addressModeU vk.SamplerAddressMode
+---@field addressModeV vk.SamplerAddressMode
+---@field addressModeW vk.SamplerAddressMode
+---@field mipLodBias number
+---@field anisotropyEnable number
+---@field maxAnisotropy number
+---@field compareEnable number
+---@field compareOp vk.CompareOp
+---@field minLod number
+---@field maxLod number
+---@field borderColor vk.BorderColor
+---@field unnormalizedCoordinates number
+
+---@alias vk.ffi.Sampler ffi.cdata*
+
 ---@class vk.ffi.XlibSurfaceCreateInfoKHR: vk.ffi.BaseStruct
 ---@field dpy ffi.cdata*
 ---@field window number

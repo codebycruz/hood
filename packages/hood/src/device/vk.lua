@@ -57,4 +57,9 @@ function VKDevice:createTexture(descriptor)
 	return VKTexture.new(self, descriptor)
 end
 
+---@param descriptor hood.SamplerDescriptor
+function VKDevice:createSampler(descriptor)
+	return VKSampler.new(self, descriptor)
+end
+
 return VKDevice

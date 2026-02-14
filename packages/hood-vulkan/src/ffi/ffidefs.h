@@ -885,6 +885,33 @@ typedef struct {
   VkResult *pResults;
 } VkPresentInfoKHR;
 
+typedef int32_t VkFilter;
+typedef int32_t VkSamplerMipmapMode;
+typedef int32_t VkSamplerAddressMode;
+typedef int32_t VkBorderColor;
+typedef VkFlags VkSamplerCreateFlags;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
+  VkSamplerCreateFlags flags;
+  VkFilter magFilter;
+  VkFilter minFilter;
+  VkSamplerMipmapMode mipmapMode;
+  VkSamplerAddressMode addressModeU;
+  VkSamplerAddressMode addressModeV;
+  VkSamplerAddressMode addressModeW;
+  float mipLodBias;
+  VkBool32 anisotropyEnable;
+  float maxAnisotropy;
+  VkBool32 compareEnable;
+  int32_t compareOp;
+  float minLod;
+  float maxLod;
+  VkBorderColor borderColor;
+  VkBool32 unnormalizedCoordinates;
+} VkSamplerCreateInfo;
+
 VkResult vkGetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
                                        VkPhysicalDeviceProperties *pProperties);
 
@@ -1104,3 +1131,11 @@ VkResult vkCreateWin32SurfaceKHR(VkInstance instance,
                                  const VkWin32SurfaceCreateInfoKHR *pCreateInfo,
                                  const VkAllocationCallbacks *pAllocator,
                                  VkSurfaceKHR *pSurface);
+
+VkResult vkCreateSampler(VkDevice device,
+                         const VkSamplerCreateInfo *pCreateInfo,
+                         const VkAllocationCallbacks *pAllocator,
+                         VkSampler *pSampler);
+
+void vkDestroySampler(VkDevice device, VkSampler sampler,
+                      const VkAllocationCallbacks *pAllocator);

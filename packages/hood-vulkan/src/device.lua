@@ -545,6 +545,26 @@ return function(vk)
 		end
 	end
 
+	---@param createInfo vk.ffi.SamplerCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Sampler
+	function VKDevice:createSampler(createInfo, allocator)
+		local createInfo = ffi.new("VkSamplerCreateInfo", createInfo)
+		createInfo.sType = vk.StructureType.SAMPLER_CREATE_INFO
+		local sampler = ffi.new("VkSampler[1]")
+		local result = self.v1_0.vkCreateSampler(self.handle, createInfo, allocator, sampler)
+		if result ~= 0 then
+			error("Failed to create Vulkan sampler, error code: " .. tostring(result))
+		end
+		return sampler[0]
+	end
+
+	---@param sampler vk.ffi.Sampler
+	---@param allocator ffi.cdata*?
+	function VKDevice:destroySampler(sampler, allocator)
+		self.v1_0.vkDestroySampler(self.handle, sampler, allocator)
+	end
+
 	---@param info vk.ffi.MemoryAllocateInfo
 	---@param allocator ffi.cdata*?
 	---@return vk.ffi.DeviceMemory
@@ -1013,6 +1033,8 @@ return function(vk)
 	---@field vkGetSwapchainImagesKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, count: ffi.cdata*, images: ffi.cdata*?): vk.ffi.Result
 	---@field vkAcquireNextImageKHR fun(device: vk.ffi.Device, swapchain: vk.ffi.SwapchainKHR, timeout: number, semaphore: vk.ffi.Semaphore?, fence: vk.ffi.Fence?, imageIndex: ffi.cdata*): vk.ffi.Result
 	---@field vkQueuePresentKHR fun(queue: vk.ffi.Queue, info: vk.ffi.PresentInfoKHR): vk.ffi.Result
+	---@field vkCreateSampler fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, sampler: ffi.cdata*): vk.ffi.Result
+	---@field vkDestroySampler fun(device: vk.ffi.Device, sampler: vk.ffi.Sampler, allocator: ffi.cdata*?)
 
 	---@param handle vk.ffi.Device
 	function VKDevice.new(handle)
@@ -1065,6 +1087,8 @@ return function(vk)
 			vkGetSwapchainImagesKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint32_t*, VkImage*)",
 			vkAcquireNextImageKHR = "VkResult(*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)",
 			vkQueuePresentKHR = "VkResult(*)(VkQueue, const VkPresentInfoKHR*)",
+			vkCreateSampler = "VkResult(*)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*)",
+			vkDestroySampler = "void(*)(VkDevice, VkSampler, const VkAllocationCallbacks*)",
 		}
 
 		---@type vk.Device.Fns
