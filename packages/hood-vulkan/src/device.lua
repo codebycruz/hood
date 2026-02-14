@@ -321,6 +321,28 @@ return function(vk)
 		return pipelineList
 	end
 
+	---@param pipelineCache vk.ffi.PipelineCache?
+	---@param info vk.ffi.ComputePipelineCreateInfo
+	---@param allocator ffi.cdata*?
+	---@return vk.ffi.Pipeline
+	function VKDevice:createComputePipeline(pipelineCache, info, allocator)
+		local stage = ffi.new("VkPipelineShaderStageCreateInfo", info.stage)
+		stage.sType = vk.StructureType.PIPELINE_SHADER_STAGE_CREATE_INFO
+
+		local createInfo = ffi.new("VkComputePipelineCreateInfo")
+		createInfo.sType = vk.StructureType.COMPUTE_PIPELINE_CREATE_INFO
+		createInfo.stage = stage
+		createInfo.layout = info.layout
+
+		local pipeline = ffi.new("VkPipeline[1]")
+		local result = self.v1_0.vkCreateComputePipelines(self.handle, pipelineCache or vk.NULL, 1, createInfo, allocator,
+			pipeline)
+		if result ~= 0 then
+			error("Failed to create Vulkan compute pipeline, error code: " .. tostring(result))
+		end
+		return pipeline[0]
+	end
+
 	---@class vk.AttachmentDescription
 	---@field format vk.Format
 	---@field samples vk.SampleCountFlagBits?
@@ -763,6 +785,14 @@ return function(vk)
 	end
 
 	---@param commandBuffer vk.ffi.CommandBuffer
+	---@param groupCountX number
+	---@param groupCountY number
+	---@param groupCountZ number
+	function VKDevice:cmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ)
+		self.v1_0.vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ)
+	end
+
+	---@param commandBuffer vk.ffi.CommandBuffer
 	---@param srcStageMask vk.PipelineStageFlags
 	---@param dstStageMask vk.PipelineStageFlags
 	---@param imageMemoryBarrierCount number
@@ -1047,6 +1077,8 @@ return function(vk)
 	---@field vkCreateSampler fun(device: vk.ffi.Device, info: ffi.cdata*, allocator: ffi.cdata*?, sampler: ffi.cdata*): vk.ffi.Result
 	---@field vkDestroySampler fun(device: vk.ffi.Device, sampler: vk.ffi.Sampler, allocator: ffi.cdata*?)
 	---@field vkCmdPipelineBarrier fun(commandBuffer: vk.ffi.CommandBuffer, srcStageMask: number, dstStageMask: number, dependencyFlags: number, memoryBarrierCount: number, pMemoryBarriers: ffi.cdata*?, bufferMemoryBarrierCount: number, pBufferMemoryBarriers: ffi.cdata*?, imageMemoryBarrierCount: number, pImageMemoryBarriers: ffi.cdata*?)
+	---@field vkCreateComputePipelines fun(device: vk.ffi.Device, pipelineCache: number, count: number, infos: ffi.cdata*, allocator: ffi.cdata*?, pipelines: ffi.cdata*): vk.ffi.Result
+	---@field vkCmdDispatch fun(commandBuffer: vk.ffi.CommandBuffer, groupCountX: number, groupCountY: number, groupCountZ: number)
 
 	---@param handle vk.ffi.Device
 	function VKDevice.new(handle)
@@ -1102,6 +1134,8 @@ return function(vk)
 			vkCreateSampler = "VkResult(*)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*)",
 			vkDestroySampler = "void(*)(VkDevice, VkSampler, const VkAllocationCallbacks*)",
 			vkCmdPipelineBarrier = "void(*)(VkCommandBuffer, VkFlags, VkFlags, VkFlags, uint32_t, const void*, uint32_t, const void*, uint32_t, const VkImageMemoryBarrier*)",
+			vkCreateComputePipelines = "VkResult(*)(VkDevice, uint64_t, uint32_t, const VkComputePipelineCreateInfo*, const VkAllocationCallbacks*, VkPipeline*)",
+			vkCmdDispatch = "void(*)(VkCommandBuffer, uint32_t, uint32_t, uint32_t)",
 		}
 
 		---@type vk.Device.Fns

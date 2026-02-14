@@ -4,6 +4,7 @@ local VKPipeline = require("hood.pipeline.vk")
 local VKCommandEncoder = require("hood.command_encoder.vk")
 local VKSampler = require("hood.sampler.vk")
 local VKTexture = require("hood.texture.vk")
+local VKComputePipeline = require("hood.compute_pipeline.vk")
 
 local BindGroup = require("hood.bind_group")
 
@@ -60,6 +61,11 @@ end
 ---@param descriptor hood.SamplerDescriptor
 function VKDevice:createSampler(descriptor)
 	return VKSampler.new(self, descriptor)
+end
+
+---@param descriptor hood.ComputePipelineDescriptor
+function VKDevice:createComputePipeline(descriptor)
+	return VKComputePipeline.new(self, descriptor)
 end
 
 return VKDevice

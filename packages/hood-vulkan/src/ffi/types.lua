@@ -446,6 +446,10 @@
 ---@field limits ffi.cdata*
 ---@field sparseProperties ffi.cdata*
 
+---@class vk.ffi.ComputePipelineCreateInfo: vk.ffi.BaseStruct
+---@field stage vk.ffi.PipelineShaderStageCreateInfo
+---@field layout vk.ffi.PipelineLayout
+
 ---@class vk.ffi.SamplerCreateInfo: vk.ffi.BaseStruct
 ---@field magFilter vk.Filter
 ---@field minFilter vk.Filter

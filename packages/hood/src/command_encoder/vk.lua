@@ -288,6 +288,22 @@ function VKCommandEncoder:writeTexture(texture, descriptor, data)
 		1, barriers)
 end
 
+---@param descriptor hood.ComputePassDescriptor
+function VKCommandEncoder:beginComputePass(descriptor)
+end
+
+---@param pipeline hood.vk.ComputePipeline
+function VKCommandEncoder:setComputePipeline(pipeline)
+	self.device.handle:cmdBindPipeline(self.buffer.handle, vk.PipelineBindPoint.COMPUTE, pipeline.handle)
+end
+
+---@param x number
+---@param y number
+---@param z number
+function VKCommandEncoder:dispatchWorkgroups(x, y, z)
+	self.device.handle:cmdDispatch(self.buffer.handle, x, y, z)
+end
+
 function VKCommandEncoder:finish()
 	self.device.handle:endCommandBuffer(self.buffer.handle)
 	return self.buffer

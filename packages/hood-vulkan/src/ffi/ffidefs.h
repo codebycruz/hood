@@ -653,6 +653,16 @@ typedef struct {
 typedef struct {
   VkStructureType sType;
   const void *pNext;
+  VkPipelineCreateFlags flags;
+  VkPipelineShaderStageCreateInfo stage;
+  VkPipelineLayout layout;
+  VkPipeline basePipelineHandle;
+  int32_t basePipelineIndex;
+} VkComputePipelineCreateInfo;
+
+typedef struct {
+  VkStructureType sType;
+  const void *pNext;
   VkRenderPassCreateFlags flags;
   uint32_t attachmentCount;
   const VkAttachmentDescription *pAttachments;
@@ -1152,6 +1162,14 @@ VkResult vkCreateSampler(VkDevice device,
 
 void vkDestroySampler(VkDevice device, VkSampler sampler,
                       const VkAllocationCallbacks *pAllocator);
+
+VkResult vkCreateComputePipelines(
+    VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkComputePipelineCreateInfo *pCreateInfos,
+    const VkAllocationCallbacks *pAllocator, VkPipeline *pPipelines);
+
+void vkCmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                   uint32_t groupCountY, uint32_t groupCountZ);
 
 void vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, VkFlags srcStageMask,
                           VkFlags dstStageMask, VkFlags dependencyFlags,
