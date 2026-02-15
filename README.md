@@ -25,3 +25,11 @@ This is mainly intended to be consumed with the [lpm](https://github.com/codebyc
 ```bash
 lpm add --git https://github.com/codebycruz/hood
 ```
+
+## Example
+
+You can run the example quite simply with
+
+```bash
+lpm x triangle --git https://github.com/codebycruz/hood
+```
