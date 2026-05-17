@@ -50,8 +50,79 @@ local computePipelines = setmetatable({}, {
 	__mode = "k",
 })
 
----@param queueCtx hood.gl.Context # The queue's context; used as fallback for offscreen textures
-function GLCommandBuffer:execute(queueCtx)
+-- FBO cache, keyed first by context (weak) then by attachment signature.
+-- FBOs cannot be shared across GL contexts, so the per-context inner table
+-- keeps them separate. Outer weak keys let entries be collected when a
+-- context is garbage-collected.
+---@type table<hood.gl.Context, table<string, number>>
+local fboCache = setmetatable({}, { __mode = "k" })
+
+---@param descriptor hood.RenderPassDescriptor
+---@return string
+local function makeAttachmentKey(descriptor)
+	local parts = {}
+	for i, att in ipairs(descriptor.colorAttachments) do
+		local view = att.texture --[[@as hood.gl.TextureView]]
+		parts[#parts + 1] = string.format("c%d:%d:%d:%d", i, view.id, view.baseMipLevel, view.baseArrayLayer)
+	end
+	if descriptor.depthStencilAttachment then
+		local view = descriptor.depthStencilAttachment.texture --[[@as hood.gl.TextureView]]
+		parts[#parts + 1] = string.format("d:%d:%d:%d", view.id, view.baseMipLevel, view.baseArrayLayer)
+	end
+	return table.concat(parts, "|")
+end
+
+---@param fbo number
+---@param glAttachment number
+---@param view hood.gl.TextureView
+local function attachTextureToFBO(fbo, glAttachment, view)
+	local extents = view.descriptor and view.descriptor.extents
+	local isLayered = extents and (extents.count ~= nil or extents.dim == "3d")
+	if isLayered then
+		gl.namedFramebufferTextureLayer(fbo, glAttachment, view.id, view.baseMipLevel, view.baseArrayLayer)
+	else
+		gl.namedFramebufferTexture(fbo, glAttachment, view.id, view.baseMipLevel)
+	end
+end
+
+---@param ctx hood.gl.Context
+---@param descriptor hood.RenderPassDescriptor
+---@return number fbo GL framebuffer object handle
+local function getOrCreateFBO(ctx, descriptor)
+	if not fboCache[ctx] then
+		fboCache[ctx] = {}
+	end
+	local cache = fboCache[ctx]
+	local key = makeAttachmentKey(descriptor)
+	if cache[key] then
+		return cache[key]
+	end
+
+	local fbo = gl.createFramebuffer()
+
+	for i, att in ipairs(descriptor.colorAttachments) do
+		local view = att.texture --[[@as hood.gl.TextureView]]
+		attachTextureToFBO(fbo, gl.COLOR_ATTACHMENT0 + (i - 1), view)
+	end
+
+	if descriptor.depthStencilAttachment then
+		local view = descriptor.depthStencilAttachment.texture --[[@as hood.gl.TextureView]]
+		attachTextureToFBO(fbo, gl.DEPTH_ATTACHMENT, view)
+	end
+
+	-- Depth-only FBOs need color reads/writes explicitly disabled.
+	if #descriptor.colorAttachments == 0 then
+		gl.namedFramebufferDrawBuffer(fbo, gl.NONE)
+		gl.namedFramebufferReadBuffer(fbo, gl.NONE)
+	end
+
+	cache[key] = fbo
+	return fbo
+end
+
+---@param queueCtx hood.gl.Context  # The headless context (resource ops, compute)
+---@param renderCtx hood.gl.Context? # The window context for rendering; nil in headless-only setups
+function GLCommandBuffer:execute(queueCtx, renderCtx)
 	---@type hood.gl.ComputePipeline?
 	local computePipeline
 
@@ -66,30 +137,52 @@ function GLCommandBuffer:execute(queueCtx)
 	for _, command in ipairs(self.commands) do
 		if command.type == "beginRendering" then
 			local attachments = command.descriptor.colorAttachments
+			local depthStencilAttachment = command.descriptor.depthStencilAttachment
+
+			-- Determine which context to make current and whether we're targeting
+			-- the default (screen) framebuffer or an offscreen FBO.
+			-- Swapchain textures have no id and carry their own context;
+			-- offscreen textures use the queue's shared headless context.
+			local ctx
+			local isBackbuffer = false
+			-- Offscreen rendering must use renderCtx (the window context) rather than
+			-- queueCtx (the headless context) when a surface has been configured.
+			-- Both contexts share the same GL objects, but creating FBOs in the
+			-- headless context causes NVIDIA to crash on the next window→headless
+			-- context switch due to the two contexts using different XDisplay connections.
+			local offscreenCtx = renderCtx or queueCtx
+			local firstColorView = #attachments > 0 and attachments[1].texture --[[@as hood.gl.TextureView?]]
+			if firstColorView then
+				isBackbuffer = firstColorView.id == nil
+				ctx = isBackbuffer and firstColorView.context or offscreenCtx
+			elseif depthStencilAttachment then
+				local depthView = depthStencilAttachment.texture --[[@as hood.gl.TextureView]]
+				isBackbuffer = depthView.id == nil
+				ctx = isBackbuffer and depthView.context or offscreenCtx
+			else
+				ctx = offscreenCtx
+			end
+
+			ctx:makeCurrent()
+
+			if not vaos[ctx] then
+				vaos[ctx] = GLVAO.new()
+			end
+			vao = vaos[ctx]
+			vao:bind()
+
+			if isBackbuffer then
+				gl.bindFramebuffer(gl.FRAMEBUFFER, 0)
+			else
+				local fbo = getOrCreateFBO(ctx, command.descriptor)
+				gl.bindFramebuffer(gl.FRAMEBUFFER, fbo)
+			end
+
 			for _, attachment in ipairs(attachments) do
-				local texture = attachment.texture --[[@as hood.gl.Texture]]
-
-				-- Use the texture's context for the swapchain (id is nil),
-				-- or fall back to the queue's context for offscreen textures
-				local ctx = not texture.id and texture.context or queueCtx
-				ctx:makeCurrent()
-
-				if not vaos[ctx] then
-					local newVao = GLVAO.new()
-					vaos[ctx] = newVao
-				end
-				vao = vaos[ctx]
-				vao:bind()
-
-				assert(texture.framebuffer == 0, "Unimplemented: support for different frame buffers")
-				gl.bindFramebuffer(gl.FRAMEBUFFER, texture.framebuffer)
 				executeOp(attachment.op)
 			end
 
-			-- TODO: Support separate depth/stencil textures
-			local depthStencilAttachment = command.descriptor.depthStencilAttachment
 			if depthStencilAttachment then
-				local texture = depthStencilAttachment.texture --[[@as hood.gl.Texture]]
 				executeDepthOp(depthStencilAttachment.op)
 			end
 		elseif command.type == "setPipeline" then

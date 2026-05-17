@@ -17,6 +17,7 @@ function GLSurface:configure(device, config)
 	local context = GLContext.fromWindow(self.window, device.ctx)
 
 	context:makeCurrent()
+	device.queue.renderCtx = context
 
 	if config.presentMode == "immediate" then
 		context:setSwapInterval(0)

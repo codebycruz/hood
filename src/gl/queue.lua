@@ -2,7 +2,8 @@ local gl = require("glapi")
 local GLCommandEncoder = require("hood.gl.command_encoder")
 
 ---@class hood.gl.Queue
----@field private ctx hood.gl.Context # The headless GL context
+---@field private ctx hood.gl.Context # The headless GL context (resource ops, compute)
+---@field renderCtx hood.gl.Context?  # The window context; set by surface:configure
 local GLQueue = {}
 GLQueue.__index = GLQueue
 
@@ -14,7 +15,7 @@ end
 ---@param buffer hood.gl.CommandBuffer
 function GLQueue:submit(buffer)
 	self.ctx:makeCurrent()
-	buffer:execute(self.ctx)
+	buffer:execute(self.ctx, self.renderCtx)
 end
 
 ---@param swapchain hood.gl.Swapchain
