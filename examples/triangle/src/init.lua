@@ -117,7 +117,7 @@ eventLoop:run(function(event, handler)
 			end
 		end
 
-		local encoder = device:createCommandEncoder()
+		local encoder = swapchain:createCommandEncoder()
 
 		encoder:beginRendering({
 			colorAttachments = {

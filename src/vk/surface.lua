@@ -40,6 +40,10 @@ end
 function VKSurface:configure(device, config, oldSwapchain)
 	if oldSwapchain then
 		oldSwapchain:_destroySyncObjects()
+		-- Destroy pre-allocated command buffers (they aren't cleaned up by _destroySyncObjects)
+		for _, buf in ipairs(oldSwapchain.commandBuffers) do
+			buf:destroy()
+		end
 	end
 
 	local caps = vk.getPhysicalDeviceSurfaceCapabilitiesKHR(device.pd, self.handle)

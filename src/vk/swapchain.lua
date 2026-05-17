@@ -1,7 +1,7 @@
 local vk = require("vkapi")
-local ffi = require("ffi")
 
 local VKTexture = require("hood.vk.texture")
+local VKCommandBuffer = require("hood.vk.command_buffer")
 
 
 ---@class hood.vk.Swapchain
@@ -17,6 +17,7 @@ local VKTexture = require("hood.vk.texture")
 ---@field format hood.TextureFormat
 ---@field width number
 ---@field height number
+---@field commandBuffers hood.vk.CommandBuffer[] Pre-allocated command buffers, one per swapchain image
 local VKSwapchain = {}
 VKSwapchain.__index = VKSwapchain
 
@@ -36,11 +37,11 @@ function VKSwapchain.new(device, format, info)
 		inFlightFences[i] = device.handle:createFence({ flags = vk.FenceCreateFlagBits.SIGNALED })
 	end
 
-	-- Track per-frame command buffers for deferred cleanup
-	-- TODO: We probably don't want to be doing this in the future.
-	local pendingCommandBuffers = {}
+	-- Pre-allocate command buffers (one per swapchain image) to avoid
+	-- creating and destroying pools every frame.
+	local commandBuffers = {}
 	for i = 1, #images do
-		pendingCommandBuffers[i] = nil
+		commandBuffers[i] = VKCommandBuffer.new(device)
 	end
 
 	return setmetatable({
@@ -50,7 +51,7 @@ function VKSwapchain.new(device, format, info)
 		imageAvailableSemaphores = imageAvailableSemaphores,
 		renderFinishedSemaphores = renderFinishedSemaphores,
 		inFlightFences = inFlightFences,
-		pendingCommandBuffers = pendingCommandBuffers,
+		commandBuffers = commandBuffers,
 		currentFrame = 1,
 		imageFormat = info.imageFormat,
 		format = format,
@@ -69,12 +70,6 @@ function VKSwapchain:getCurrentTexture()
 	self.device.handle:waitForFences(1, fenceArray, true, math.huge)
 	self.device.handle:resetFences(1, fenceArray)
 
-	local prevBuf = self.pendingCommandBuffers[self.currentFrame]
-	if prevBuf then
-		prevBuf:destroy()
-		self.pendingCommandBuffers[self.currentFrame] = nil
-	end
-
 	local sem = self.imageAvailableSemaphores[self.currentFrame]
 	local result, currentVkImageIdx = self.device.handle:acquireNextImageKHR(self.handle, math.huge, sem)
 	if result == vk.Result.ERROR_OUT_OF_DATE_KHR or result == vk.Result.SUBOPTIMAL_KHR then
@@ -89,6 +84,13 @@ function VKSwapchain:getCurrentTexture()
 	return VKTexture.fromSwapchainImg(self.device, self, imageHandle, self.imageFormat, self.width, self.height)
 end
 
+--- Create a command encoder that reuses the pre-allocated command buffer
+--- for the current frame slot. This avoids pool allocation/destruction per frame.
+---@return hood.vk.CommandEncoder
+function VKSwapchain:createCommandEncoder()
+	return require("hood.vk.command_encoder").new(self.device, self.commandBuffers[self.currentFrame])
+end
+
 function VKSwapchain:_destroySyncObjects()
 	self.device.handle:queueWaitIdle(self.device.queue.handle)
 	for i = 1, #self.images do
@@ -100,6 +102,12 @@ end
 
 function VKSwapchain:destroy()
 	self:_destroySyncObjects()
+
+	-- Destroy pre-allocated command buffers
+	for _, buf in ipairs(self.commandBuffers) do
+		buf:destroy()
+	end
+
 	self.device.handle:destroySwapchainKHR(self.handle)
 end
 

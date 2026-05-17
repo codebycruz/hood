@@ -19,14 +19,19 @@ local VKCommandBuffer = require("hood.vk.command_buffer")
 local VKCommandEncoder = {}
 VKCommandEncoder.__index = VKCommandEncoder
 
-local beginInfo = vk.CommandBufferBeginInfo({
-	flags = vk.CommandBufferUsageFlagBits.SIMULTANEOUS_USE
-})
+local beginInfo = vk.CommandBufferBeginInfo({})
 
 ---@param device hood.vk.Device
+---@param reuseBuffer hood.vk.CommandBuffer? If provided, the buffer is reset and reused instead of allocating a new one.
 ---@return hood.vk.CommandEncoder
-function VKCommandEncoder.new(device)
-	local buffer = VKCommandBuffer.new(device)
+function VKCommandEncoder.new(device, reuseBuffer)
+	local buffer
+	if reuseBuffer then
+		buffer = reuseBuffer
+		buffer:reset()
+	else
+		buffer = VKCommandBuffer.new(device)
+	end
 	device.handle:beginCommandBuffer(buffer.handle, beginInfo)
 	return setmetatable({
 		device = device,
@@ -79,6 +84,7 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 	for i, att in ipairs(colorAttachments) do
 		local view = att.texture --[[@as hood.vk.TextureView]]
 		imageViews[i - 1] = view.handle
+		self.imageViews[#self.imageViews + 1] = view.handle -- track for deferred cleanup
 
 		local isSwapchain = view.texture and view.texture.isSwapchain
 		if isSwapchain and view.texture.swapchain then
@@ -105,6 +111,7 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 	if depthAttachment then
 		local view = depthAttachment.texture --[[@as hood.vk.TextureView]]
 		imageViews[totalAttachments - 1] = view.handle
+		self.imageViews[#self.imageViews + 1] = view.handle -- track for deferred cleanup
 
 		attachmentDescs[#attachmentDescs + 1] = {
 			format = view.texture.format,

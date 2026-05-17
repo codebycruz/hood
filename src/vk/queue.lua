@@ -41,13 +41,11 @@ function VKQueue:submit(buffer)
 	end
 
 	if swapchain then
-		-- Track command buffer for deferred cleanup after GPU completes
-		swapchain.pendingCommandBuffers[swapchain.currentFrame] = buffer
-
-		-- Use currentFrame for imageAvailable (per frame-in-flight)
+		-- Both semaphores are indexed by currentFrame (per frame-in-flight).
+		-- This ensures each frame slot has a dedicated pair of semaphores,
+		-- avoiding index desync between currentFrame and currentVkImageIdx.
 		waitSemaphores[0] = swapchain.imageAvailableSemaphores[swapchain.currentFrame]
-		-- Use imageIndex for renderFinished (per swapchain image)
-		signalSemaphores[0] = swapchain.renderFinishedSemaphores[swapchain.currentVkImageIdx + 1]
+		signalSemaphores[0] = swapchain.renderFinishedSemaphores[swapchain.currentFrame]
 		info.waitSemaphoreCount = 1
 		info.pWaitSemaphores = waitSemaphores
 		info.pWaitDstStageMask = waitStages
@@ -105,7 +103,8 @@ end
 ---@param swapchain hood.vk.Swapchain
 function VKQueue:present(swapchain)
 	assert(swapchain.currentVkImageIdx ~= nil, "present() called without a successful getCurrentTexture()")
-	local sem = swapchain.renderFinishedSemaphores[swapchain.currentVkImageIdx + 1]
+	-- Use the same per-frame renderFinished semaphore as submit
+	local sem = swapchain.renderFinishedSemaphores[swapchain.currentFrame]
 	swapchain.device.handle:queuePresentKHR(self.handle, swapchain.handle, swapchain.currentVkImageIdx, sem)
 
 	swapchain.currentFrame = (swapchain.currentFrame % #swapchain.images) + 1

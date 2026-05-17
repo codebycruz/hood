@@ -30,7 +30,12 @@ function VKCommandBuffer.new(device)
 	}, VKCommandBuffer)
 end
 
-function VKCommandBuffer:destroy()
+--- Free transient resources without destroying the pool (for recycling).
+--- The command buffer can be re-recorded after calling this.
+--- Note: we do NOT need to call vkResetCommandPool here because the pool
+--- was created with RESET_COMMAND_BUFFER, and vkBeginCommandBuffer
+--- (called in VKCommandEncoder.new) implicitly resets the buffer.
+function VKCommandBuffer:reset()
 	-- Free staging resources
 	if self.stagingResources then
 		for _, res in ipairs(self.stagingResources) do
@@ -63,6 +68,14 @@ function VKCommandBuffer:destroy()
 		end
 		self.renderPasses = nil
 	end
+
+	-- Clear tracked swapchains so the encoder rebuilds them fresh
+	self.swapchains = {}
+end
+
+function VKCommandBuffer:destroy()
+	-- Free all transient resources first
+	self:reset()
 
 	-- Destroying the pool implicitly frees all command buffers allocated from it
 	self.device.handle:destroyCommandPool(self.pool)
