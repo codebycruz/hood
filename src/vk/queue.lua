@@ -33,12 +33,8 @@ function VKQueue:submit(buffer)
 	info.commandBufferCount = 1
 	info.pCommandBuffers = commandBuffers
 
-	-- Scan command buffer's tracked swapchains to set up synchronization
-	local swapchain = nil
-	for sc, _ in pairs(buffer.swapchains) do
-		swapchain = sc
-		break -- only one swapchain expected per submit in practice
-	end
+	-- Use the swapchain directly (stored as a single ref, not a table)
+	local swapchain = buffer._swapchain
 
 	if swapchain then
 		-- Both semaphores are indexed by currentFrame (per frame-in-flight).

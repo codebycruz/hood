@@ -46,7 +46,7 @@ function VKCommandEncoder.new(device, reuseBuffer)
 		framebuffers = {},
 		renderPasses = {},
 		bindGroups = {},
-		swapchains = {},
+		_swapchain = nil,
 	}, VKCommandEncoder)
 end
 
@@ -101,15 +101,16 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 	local attachmentDescs = {}
 	local colorRefs = {}
 
-	-- Color attachments
-	for i, att in ipairs(colorAttachments) do
+	-- Color attachments — use numeric for loop for JIT-friendliness
+	for i = 1, #colorAttachments do
+		local att = colorAttachments[i]
 		local view = att.texture --[[@as hood.vk.TextureView]]
 		local isSwapchain = view.texture and view.texture.isSwapchain
 
 		-- Track the view handle for cleanup only if it's not a swapchain-owned view.
 		-- Swapchain views are pre-created and live for the swapchain's lifetime.
 		if isSwapchain and view.texture.swapchain then
-			self.swapchains[view.texture.swapchain] = true
+			self._swapchain = view.texture.swapchain
 		else
 			self.imageViews[#self.imageViews + 1] = view.handle
 		end
@@ -164,41 +165,67 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 			vk.AccessFlags.DEPTH_STENCIL_ATTACHMENT_WRITE)
 	end
 
-	-- Cache render passes by attachment configuration to avoid creating
-	-- VkRenderPass objects every frame (a common source of overhead).
-	-- The key is built from each attachment's format, loadOp, and finalLayout,
-	-- plus a depth-attachment flag.
-	local cacheKey = ""
-	for _, att in ipairs(attachmentDescs) do
-		cacheKey = cacheKey .. "," .. att.format .. "," .. att.loadOp .. "," .. att.finalLayout
-	end
-	cacheKey = cacheKey .. ",d=" .. (depthAttachment and "1" or "0")
+	-- Look up the render pass: for swapchain, store directly on the swapchain
+	-- (avoids building a string key every frame). For non-swapchain, use the
+	-- device-level cache with a string key.
+	local renderPass
+	if swapchainForFB then
+		renderPass = swapchainForFB._cachedRenderPass
+		if not renderPass then
+			renderPass = self.device.handle:createRenderPass({
+				attachments = attachmentDescs,
+				subpasses = {
+					{
+						pipelineBindPoint = vk.PipelineBindPoint.GRAPHICS,
+						colorAttachments = colorRefs,
+						depthStencilAttachment = depthRef,
+					},
+				},
+				dependencies = {
+					{
+						srcSubpass = vk.SUBPASS_EXTERNAL,
+						dstSubpass = 0,
+						srcStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+						dstStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+						dstAccessMask = bit.bor(vk.AccessFlags.COLOR_ATTACHMENT_WRITE, depthAccessMask),
+					},
+				},
+			})
+			swapchainForFB._cachedRenderPass = renderPass
+		end
+	else
+		-- Build a cache key from attachment properties for non-swapchain rendering
+		local cacheKey = ""
+		for attIdx = 1, #attachmentDescs do
+			local att = attachmentDescs[attIdx]
+			cacheKey = cacheKey .. "," .. att.format .. "," .. att.loadOp .. "," .. att.finalLayout
+		end
+		cacheKey = cacheKey .. ",d=" .. (depthAttachment and "1" or "0")
 
-	local renderPass = self.device._renderPassCache[cacheKey]
-	if not renderPass then
-		renderPass = self.device.handle:createRenderPass({
-			attachments = attachmentDescs,
-			subpasses = {
-				{
-					pipelineBindPoint = vk.PipelineBindPoint.GRAPHICS,
-					colorAttachments = colorRefs,
-					depthStencilAttachment = depthRef,
+		renderPass = self.device._renderPassCache[cacheKey]
+		if not renderPass then
+			renderPass = self.device.handle:createRenderPass({
+				attachments = attachmentDescs,
+				subpasses = {
+					{
+						pipelineBindPoint = vk.PipelineBindPoint.GRAPHICS,
+						colorAttachments = colorRefs,
+						depthStencilAttachment = depthRef,
+					},
 				},
-			},
-			dependencies = {
-				{
-					srcSubpass = vk.SUBPASS_EXTERNAL,
-					dstSubpass = 0,
-					srcStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
-					dstStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
-					dstAccessMask = bit.bor(vk.AccessFlags.COLOR_ATTACHMENT_WRITE, depthAccessMask),
+				dependencies = {
+					{
+						srcSubpass = vk.SUBPASS_EXTERNAL,
+						dstSubpass = 0,
+						srcStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+						dstStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+						dstAccessMask = bit.bor(vk.AccessFlags.COLOR_ATTACHMENT_WRITE, depthAccessMask),
+					},
 				},
-			},
-		})
-		self.device._renderPassCache[cacheKey] = renderPass
+			})
+			self.device._renderPassCache[cacheKey] = renderPass
+		end
 	end
-	-- Cached render passes are owned by the device cache, not tracked per-frame.
-	-- They persist for the lifetime of the device.
 
 	-- Use a cached framebuffer when rendering to a swapchain (the common case).
 	-- Swapchain framebuffers are lazily created and cached per (renderPass, imageIdx, dimensions).
@@ -225,7 +252,8 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		clearValues = vk.ClearValueArray(totalAttachments)
 	end
 
-	for i, att in ipairs(colorAttachments) do
+	for i = 1, #colorAttachments do
+		local att = colorAttachments[i]
 		if att.op.type == "clear" then
 			local c = att.op.color
 			clearValues[i - 1].color.float32[0] = c.r
@@ -665,7 +693,7 @@ function VKCommandEncoder:finish()
 	self.buffer.imageViews = self.imageViews
 	self.buffer.framebuffers = self.framebuffers
 	self.buffer.renderPasses = self.renderPasses
-	self.buffer.swapchains = self.swapchains
+	self.buffer._swapchain = self._swapchain
 
 	return self.buffer
 end

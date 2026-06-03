@@ -4,7 +4,7 @@ local vk = require("vkapi")
 ---@field device hood.vk.Device
 ---@field pool vk.ffi.CommandPool
 ---@field handle vk.ffi.CommandBuffer
----@field swapchains table<hood.vk.Swapchain, boolean>
+---@field _swapchain hood.vk.Swapchain?
 local VKCommandBuffer = {}
 VKCommandBuffer.__index = VKCommandBuffer
 
@@ -26,7 +26,6 @@ function VKCommandBuffer.new(device)
 		pool = pool,
 		handle = handle,
 		stagingResources = nil,
-		swapchains = {},
 	}, VKCommandBuffer)
 end
 
@@ -69,8 +68,8 @@ function VKCommandBuffer:reset()
 		self.renderPasses = nil
 	end
 
-	-- Clear tracked swapchains so the encoder rebuilds them fresh
-	self.swapchains = {}
+	-- Clear tracked swapchain ref so the encoder builds it fresh
+	self._swapchain = nil
 end
 
 function VKCommandBuffer:destroy()

@@ -21,6 +21,7 @@ local VKCommandBuffer = require("hood.vk.command_buffer")
 ---@field commandBuffers hood.vk.CommandBuffer[] Pre-allocated command buffers, one per swapchain image
 ---@field imageViews vk.ffi.ImageView[] # 1 indexed array of pre-created VkImageViews
 ---@field _framebufferCache table<userdata, table<string, table<integer, vk.ffi.Framebuffer>>>
+---@field _cachedRenderPass vk.ffi.RenderPass?
 local VKSwapchain = {}
 VKSwapchain.__index = VKSwapchain
 
