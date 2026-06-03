@@ -1,3 +1,4 @@
+local ffi = require("ffi")
 local vk = require("vkapi")
 
 local VKTexture = require("hood.vk.texture")
@@ -18,6 +19,8 @@ local VKCommandBuffer = require("hood.vk.command_buffer")
 ---@field width number
 ---@field height number
 ---@field commandBuffers hood.vk.CommandBuffer[] Pre-allocated command buffers, one per swapchain image
+---@field imageViews vk.ffi.ImageView[] # 1 indexed array of pre-created VkImageViews
+---@field _framebufferCache table<userdata, table<string, table<integer, vk.ffi.Framebuffer>>>
 local VKSwapchain = {}
 VKSwapchain.__index = VKSwapchain
 
@@ -44,8 +47,32 @@ function VKSwapchain.new(device, format, info)
 		commandBuffers[i] = VKCommandBuffer.new(device)
 	end
 
+	-- Pre-create image views for each swapchain image so we don't
+	-- create and destroy them every frame.
+	local imageViews = {}
+
+	for i = 1, #images do
+		imageViews[i] = device.handle:createImageView({
+			image = images[i],
+			viewType = vk.ImageViewType.TYPE_2D,
+			format = info.imageFormat,
+			subresourceRange = {
+				aspectMask = vk.ImageAspectFlagBits.COLOR,
+				baseMipLevel = 0,
+				levelCount = 1,
+				baseArrayLayer = 0,
+				layerCount = 1,
+			},
+			components = nil, --[[@type vk.ffi.ComponentMapping]]
+		})
+	end
+
+	-- Framebuffer cache: renderPass -> "WxH" string -> imageIdx -> VkFramebuffer
+	local framebufferCache = {}
+
 	return setmetatable({
 		images = images,
+		imageViews = imageViews,
 		device = device,
 		handle = handle,
 		imageAvailableSemaphores = imageAvailableSemaphores,
@@ -53,6 +80,7 @@ function VKSwapchain.new(device, format, info)
 		inFlightFences = inFlightFences,
 		commandBuffers = commandBuffers,
 		currentFrame = 1,
+		_framebufferCache = framebufferCache,
 		imageFormat = info.imageFormat,
 		format = format,
 		width = info.imageExtent.width,
@@ -81,7 +109,8 @@ function VKSwapchain:getCurrentTexture()
 	local imageHandle = self.images[currentVkImageIdx + 1]
 
 	self.currentVkImageIdx = currentVkImageIdx
-	return VKTexture.fromSwapchainImg(self.device, self, imageHandle, self.imageFormat, self.width, self.height)
+	return VKTexture.fromSwapchainImg(self.device, self, imageHandle, self.imageFormat, self.width, self.height,
+		currentVkImageIdx)
 end
 
 --- Create a command encoder that reuses the pre-allocated command buffer
@@ -89,6 +118,46 @@ end
 ---@return hood.vk.CommandEncoder
 function VKSwapchain:createCommandEncoder()
 	return require("hood.vk.command_encoder").new(self.device, self.commandBuffers[self.currentFrame])
+end
+
+--- Look up or create a framebuffer for the given render pass and current swapchain image.
+--- The framebuffer uses the pre-created image view for this swapchain image index.
+--- Cached per (renderPass, imageIdx, dimensions) so subsequent frames are a table lookup.
+---@param renderPass vk.ffi.RenderPass
+---@param width number
+---@param height number
+function VKSwapchain:getFramebuffer(renderPass, width, height)
+	local imgIdx = self.currentVkImageIdx -- 0-based
+
+	local rpCache = self._framebufferCache[renderPass]
+	if not rpCache then
+		rpCache = {}
+		self._framebufferCache[renderPass] = rpCache
+	end
+
+	local dimKey = width .. "x" .. height
+	local dimCache = rpCache[dimKey]
+	if not dimCache then
+		dimCache = {}
+		rpCache[dimKey] = dimCache
+	end
+
+	local fb = dimCache[imgIdx]
+	if not fb then
+		local fbViews = ffi.new("VkImageView[1]")
+		fbViews[0] = self.imageViews[imgIdx + 1]
+		fb = self.device.handle:createFramebuffer({
+			renderPass = renderPass,
+			attachmentCount = 1,
+			pAttachments = fbViews,
+			width = width,
+			height = height,
+			layers = 1,
+		})
+		dimCache[imgIdx] = fb
+	end
+
+	return fb
 end
 
 function VKSwapchain:_destroySyncObjects()
@@ -106,6 +175,20 @@ function VKSwapchain:destroy()
 	-- Destroy pre-allocated command buffers
 	for _, buf in ipairs(self.commandBuffers) do
 		buf:destroy()
+	end
+
+	-- Destroy cached framebuffers
+	for _, rpCache in pairs(self._framebufferCache) do
+		for _, dimCache in pairs(rpCache) do
+			for _, fb in pairs(dimCache) do
+				self.device.handle:destroyFramebuffer(fb)
+			end
+		end
+	end
+
+	-- Destroy pre-created image views
+	for _, iv in ipairs(self.imageViews) do
+		self.device.handle:destroyImageView(iv)
 	end
 
 	self.device.handle:destroySwapchainKHR(self.handle)

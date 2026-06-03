@@ -76,20 +76,44 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		width, height = view.texture.width, view.texture.height
 	end
 
+	-- Detect if the first color attachment is a swapchain texture, so we can
+	-- use pre-created image views and cached framebuffers from the swapchain.
+	local swapchainForFB = nil
+	if colorAttachments[1] then
+		local view = colorAttachments[1].texture --[[@as hood.vk.TextureView]]
+		if view.texture and view.texture.isSwapchain and view.texture.swapchain then
+			swapchainForFB = view.texture.swapchain
+		end
+	end
+
 	local imageViews = ffi.new("VkImageView[?]", totalAttachments)
 	local attachmentDescs = {}
 	local colorRefs = {}
 
-	-- Color attachments: att.texture is a TextureView, att.texture.handle is already a VkImageView
+	-- Color attachments
 	for i, att in ipairs(colorAttachments) do
 		local view = att.texture --[[@as hood.vk.TextureView]]
-		imageViews[i - 1] = view.handle
-		self.imageViews[#self.imageViews + 1] = view.handle -- track for deferred cleanup
-
 		local isSwapchain = view.texture and view.texture.isSwapchain
+
+		local imageViewHandle
 		if isSwapchain and view.texture.swapchain then
-			self.swapchains[view.texture.swapchain] = true
+			-- Use the pre-created image view from the swapchain.
+			-- These views live for the swapchain's lifetime, so we don't
+			-- add them to self.imageViews for per-frame cleanup.
+			local sc = view.texture.swapchain
+			local imgIdx = view.texture.swapchainImageIdx --[[@as integer]]
+			imageViewHandle = sc.imageViews[imgIdx + 1]
+			self.swapchains[sc] = true
+			-- Still track the passed-in view handle for cleanup (the user's
+			-- texture:createView() creates a new handle each frame).
+			self.imageViews[#self.imageViews + 1] = view.handle
+		else
+			-- Transient view: use the handle and track for deferred cleanup.
+			imageViewHandle = view.handle
+			self.imageViews[#self.imageViews + 1] = imageViewHandle
 		end
+		imageViews[i - 1] = imageViewHandle
+
 		attachmentDescs[#attachmentDescs + 1] = {
 			format = view.texture.format,
 			samples = vk.SampleCountFlagBits.COUNT_1,
@@ -175,15 +199,23 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 	-- Cached render passes are owned by the device cache, not tracked per-frame.
 	-- They persist for the lifetime of the device.
 
-	local framebuffer = self.device.handle:createFramebuffer({
-		renderPass = renderPass,
-		attachmentCount = totalAttachments,
-		pAttachments = imageViews,
-		width = width,
-		height = height,
-		layers = 1,
-	})
-	self.framebuffers[#self.framebuffers + 1] = framebuffer
+	-- Use a cached framebuffer when rendering to a swapchain (the common case).
+	-- Swapchain framebuffers are lazily created and cached per (renderPass, imageIdx, dimensions).
+	-- For non-swapchain rendering, create a transient framebuffer tracked per-frame.
+	local framebuffer
+	if swapchainForFB and not depthAttachment then
+		framebuffer = swapchainForFB:getFramebuffer(renderPass, width, height)
+	else
+		framebuffer = self.device.handle:createFramebuffer({
+			renderPass = renderPass,
+			attachmentCount = totalAttachments,
+			pAttachments = imageViews,
+			width = width,
+			height = height,
+			layers = 1,
+		})
+		self.framebuffers[#self.framebuffers + 1] = framebuffer
+	end
 
 	local clearValues = vk.ClearValueArray(totalAttachments)
 
