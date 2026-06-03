@@ -21,6 +21,12 @@ VKCommandEncoder.__index = VKCommandEncoder
 
 local beginInfo = vk.CommandBufferBeginInfo({})
 
+-- Pre-allocated working buffers for the common single-attachment case.
+-- These are reused across frames to avoid per-frame FFI allocation.
+local _reusableClearValues = vk.ClearValueArray(1)
+local _reusableBeginInfo = vk.RenderPassBeginInfo()
+local _reusableImageViews = ffi.new("VkImageView[1]")
+
 ---@param device hood.vk.Device
 ---@param reuseBuffer hood.vk.CommandBuffer? If provided, the buffer is reset and reused instead of allocating a new one.
 ---@return hood.vk.CommandEncoder
@@ -86,7 +92,12 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		end
 	end
 
-	local imageViews = ffi.new("VkImageView[?]", totalAttachments)
+	local imageViews
+	if totalAttachments == 1 then
+		imageViews = _reusableImageViews
+	else
+		imageViews = ffi.new("VkImageView[?]", totalAttachments)
+	end
 	local attachmentDescs = {}
 	local colorRefs = {}
 
@@ -95,24 +106,14 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		local view = att.texture --[[@as hood.vk.TextureView]]
 		local isSwapchain = view.texture and view.texture.isSwapchain
 
-		local imageViewHandle
+		-- Track the view handle for cleanup only if it's not a swapchain-owned view.
+		-- Swapchain views are pre-created and live for the swapchain's lifetime.
 		if isSwapchain and view.texture.swapchain then
-			-- Use the pre-created image view from the swapchain.
-			-- These views live for the swapchain's lifetime, so we don't
-			-- add them to self.imageViews for per-frame cleanup.
-			local sc = view.texture.swapchain
-			local imgIdx = view.texture.swapchainImageIdx --[[@as integer]]
-			imageViewHandle = sc.imageViews[imgIdx + 1]
-			self.swapchains[sc] = true
-			-- Still track the passed-in view handle for cleanup (the user's
-			-- texture:createView() creates a new handle each frame).
-			self.imageViews[#self.imageViews + 1] = view.handle
+			self.swapchains[view.texture.swapchain] = true
 		else
-			-- Transient view: use the handle and track for deferred cleanup.
-			imageViewHandle = view.handle
-			self.imageViews[#self.imageViews + 1] = imageViewHandle
+			self.imageViews[#self.imageViews + 1] = view.handle
 		end
-		imageViews[i - 1] = imageViewHandle
+		imageViews[i - 1] = view.handle
 
 		attachmentDescs[#attachmentDescs + 1] = {
 			format = view.texture.format,
@@ -217,7 +218,12 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		self.framebuffers[#self.framebuffers + 1] = framebuffer
 	end
 
-	local clearValues = vk.ClearValueArray(totalAttachments)
+	local clearValues
+	if totalAttachments == 1 then
+		clearValues = _reusableClearValues
+	else
+		clearValues = vk.ClearValueArray(totalAttachments)
+	end
 
 	for i, att in ipairs(colorAttachments) do
 		if att.op.type == "clear" then
@@ -234,7 +240,7 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 		clearValues[totalAttachments - 1].depthStencil.stencil = 0
 	end
 
-	local beginInfo = vk.RenderPassBeginInfo()
+	local beginInfo = _reusableBeginInfo
 	beginInfo.renderPass = renderPass
 	beginInfo.framebuffer = framebuffer
 	beginInfo.renderArea.offset.x = 0

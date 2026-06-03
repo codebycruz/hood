@@ -109,8 +109,16 @@ function VKSwapchain:getCurrentTexture()
 	local imageHandle = self.images[currentVkImageIdx + 1]
 
 	self.currentVkImageIdx = currentVkImageIdx
-	return VKTexture.fromSwapchainImg(self.device, self, imageHandle, self.imageFormat, self.width, self.height,
-		currentVkImageIdx)
+
+	-- Reuse a single VKTexture to avoid per-frame table allocation and to
+	-- keep cached texture views (from createView) alive across frames.
+	if not self._currentTexture then
+		self._currentTexture = VKTexture.fromSwapchainImg(self.device, self, imageHandle,
+			self.imageFormat, self.width, self.height, currentVkImageIdx)
+	end
+	self._currentTexture.handle = imageHandle
+	self._currentTexture.swapchainImageIdx = currentVkImageIdx
+	return self._currentTexture
 end
 
 --- Create a command encoder that reuses the pre-allocated command buffer
