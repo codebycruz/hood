@@ -16,6 +16,7 @@ local VKTextureView = require("hood.vk.texture_view")
 ---@field handle vk.Device
 ---@field pd vk.ffi.PhysicalDevice
 ---@field descriptorPool vk.ffi.DescriptorPool
+---@field _renderPassCache table<string, vk.ffi.RenderPass>
 local VKDevice = {}
 VKDevice.__index = VKDevice
 
@@ -59,6 +60,10 @@ function VKDevice.new(adapter)
 		poolSizeCount = 5,
 		pPoolSizes = sizes,
 	})
+
+	-- Cache for render passes keyed by attachment configuration, so we don't
+	-- create VkRenderPass objects every frame (they're usually reused).
+	device._renderPassCache = {}
 
 	return device
 end

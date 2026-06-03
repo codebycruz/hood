@@ -139,26 +139,41 @@ function VKCommandEncoder:_beginRenderPass(pipeline, descriptor)
 			vk.AccessFlags.DEPTH_STENCIL_ATTACHMENT_WRITE)
 	end
 
-	local renderPass = self.device.handle:createRenderPass({
-		attachments = attachmentDescs,
-		subpasses = {
-			{
-				pipelineBindPoint = vk.PipelineBindPoint.GRAPHICS,
-				colorAttachments = colorRefs,
-				depthStencilAttachment = depthRef,
+	-- Cache render passes by attachment configuration to avoid creating
+	-- VkRenderPass objects every frame (a common source of overhead).
+	-- The key is built from each attachment's format, loadOp, and finalLayout,
+	-- plus a depth-attachment flag.
+	local cacheKey = ""
+	for _, att in ipairs(attachmentDescs) do
+		cacheKey = cacheKey .. "," .. att.format .. "," .. att.loadOp .. "," .. att.finalLayout
+	end
+	cacheKey = cacheKey .. ",d=" .. (depthAttachment and "1" or "0")
+
+	local renderPass = self.device._renderPassCache[cacheKey]
+	if not renderPass then
+		renderPass = self.device.handle:createRenderPass({
+			attachments = attachmentDescs,
+			subpasses = {
+				{
+					pipelineBindPoint = vk.PipelineBindPoint.GRAPHICS,
+					colorAttachments = colorRefs,
+					depthStencilAttachment = depthRef,
+				},
 			},
-		},
-		dependencies = {
-			{
-				srcSubpass = vk.SUBPASS_EXTERNAL,
-				dstSubpass = 0,
-				srcStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
-				dstStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
-				dstAccessMask = bit.bor(vk.AccessFlags.COLOR_ATTACHMENT_WRITE, depthAccessMask),
+			dependencies = {
+				{
+					srcSubpass = vk.SUBPASS_EXTERNAL,
+					dstSubpass = 0,
+					srcStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+					dstStageMask = bit.bor(vk.PipelineStageFlagBits.COLOR_ATTACHMENT_OUTPUT, depthStageMask),
+					dstAccessMask = bit.bor(vk.AccessFlags.COLOR_ATTACHMENT_WRITE, depthAccessMask),
+				},
 			},
-		},
-	})
-	self.renderPasses[#self.renderPasses + 1] = renderPass
+		})
+		self.device._renderPassCache[cacheKey] = renderPass
+	end
+	-- Cached render passes are owned by the device cache, not tracked per-frame.
+	-- They persist for the lifetime of the device.
 
 	local framebuffer = self.device.handle:createFramebuffer({
 		renderPass = renderPass,
