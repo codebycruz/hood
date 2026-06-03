@@ -81,12 +81,12 @@ function VKSurface:configure(device, config, oldSwapchain)
 		end
 	end
 
-	if not presentMode then
-		error("Requested present mode not supported: " .. tostring(config.presentMode))
-	end
+    if not presentMode then
+        error("Requested present mode not supported: " .. tostring(config.presentMode))
+    end
 
-	local newSwapchain = VKSwapchain.new(device, hoodFormat, {
-		surface = self.handle,
+    local swapchainInfo = vk.SwapchainCreateInfoKHR({
+    	surface = self.handle,
 		minImageCount = imageCount,
 		imageFormat = format.format,
 		imageColorSpace = format.colorSpace,
@@ -99,7 +99,9 @@ function VKSurface:configure(device, config, oldSwapchain)
 		presentMode = presentMode,
 		clipped = 1,
 		oldSwapchain = oldSwapchain and oldSwapchain.handle or nil
-	})
+    })
+
+	local newSwapchain = VKSwapchain.new(device, hoodFormat, swapchainInfo)
 	if oldSwapchain then
 		device.handle:destroySwapchainKHR(oldSwapchain.handle)
 	end
